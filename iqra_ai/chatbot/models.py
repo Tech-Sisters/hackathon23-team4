@@ -11,7 +11,7 @@ class Word(models.Model):
         LESSON = 'lesson', 'Lesson'
         FREE = 'free', 'Free'
 
-    word = models.CharField(max_length=50, unique=True)
+    word = models.CharField(max_length=50)
     frequency = models.PositiveIntegerField(default=0)
     word_type = models.CharField(max_length=6, choices=TypeChoices.choices, default=TypeChoices.FREE)
 
@@ -19,7 +19,7 @@ class Word(models.Model):
         return f"{self.word} ({self.word_type} word)"
 
 class Level(models.Model):
-    letter = models.CharField(default='A',max_length=1)
+    letter = models.CharField(default='A',max_length=1, unique=True)
     
     def __str__(self):
         return f"Level {self.letter}"
@@ -28,6 +28,9 @@ class Lesson(models.Model):
     number = models.PositiveIntegerField(default=1)
     level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True)
     words = models.ManyToManyField(Word, related_name='word_lessons')
+
+    class Meta:
+        unique_together = ["number", "level"]
 
     def __str__(self):
         return f"Lesson {self.number} (Level {self.level.letter})"
