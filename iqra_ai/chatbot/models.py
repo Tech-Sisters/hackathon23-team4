@@ -17,7 +17,7 @@ class Word(models.Model):
     word_type = models.CharField(max_length=6, choices=TypeChoices.choices, default=TypeChoices.FREE)
 
     def __str__(self):
-        return f"{self.word} ({self.word_type} word)"
+        return f"{self.word} ({self.word_type} word {self.id})"
 
 class Level(models.Model):
     letter = models.CharField(default='A',max_length=1, unique=True)
