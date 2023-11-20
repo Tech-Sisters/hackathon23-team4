@@ -53,6 +53,7 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
+# Register view
 def register(request):
     """
     Handles user registration. 
