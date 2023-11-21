@@ -17,31 +17,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addAssistantMessage(message) {
-        // Remove existing bubbles
-        if (bubbleContainer) {
-            bubbleContainer.remove();
-        }
-
         const assistantMessage = document.createElement('div');
         assistantMessage.classList.add('message', 'assistant-message');
         const words = message.split(' ');
-
-        bubbleContainer = document.createElement('div');
-        bubbleContainer.id = 'bubbleContainer';
-        bubbleContainer.style.position = 'relative';
-        assistantMessage.appendChild(bubbleContainer);
-
+    
+        const newBubbleContainer = document.createElement('div');
+        newBubbleContainer.style.position = 'relative';
+    
         words.forEach((word) => {
             const span = document.createElement('span');
             span.textContent = word + ' ';
             span.classList.add('clickable-word');
             span.addEventListener('click', (event) => createBubble(event, word));
-            bubbleContainer.appendChild(span);
+            newBubbleContainer.appendChild(span);
         });
-
+    
+        assistantMessage.appendChild(newBubbleContainer);
         chatMessages.appendChild(assistantMessage);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
-    }
+    }    
 
     function createBubble(event, word) {
         // Remove existing bubbles
