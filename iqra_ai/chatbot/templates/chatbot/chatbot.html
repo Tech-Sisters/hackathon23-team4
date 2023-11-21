@@ -1,24 +1,50 @@
 {% extends "chatbot/layout.html" %}
 {% load static %}
 
+{% block static %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'chatbot/chatbot.css' %}" type="text/css" >
+{% endblock %}
+
 {% block script %}
-    <script src="{% static 'chatbot/chatbot.js' %}"></script>
+<script src="{% static 'chatbot/chatbot.js' %}"></script>
 {% endblock %}
 
 {% block body %}
 
 
-<div>
-    <h1>Welcome to Iqra.ai</h1>
-    <a class="btn btn-primary" href="{% url 'logout' %}" role="button">Log out</a>
-    <h4>My Queue<h4>
-    <ol>
-        {% for word in lesson_words %}
-        <li>{{ word }}</li>
-        {% endfor %}
-    </ol>
-    <h1>Lesson {{ lesson }}</h1>
-    <h2>{{ activity_name }}</h2>
+<div class="main-container">
+    <div class="sidebar">
+        <h1>Welcome to Iqra.ai</h1>
+        <br>
+        <h2>Lesson {{ lesson }}</h1>
+        <h3>{{ activity_name }}</h2>
+        <hr>
+        <h4>My Queue<h4>
+        <ol>
+            {% for word in lesson_words %}
+            <li>{{ word }}</li>
+            {% endfor %}
+        </ol>
+        
+        <a class="btn btn-primary" href="{% url 'logout' %}" role="button">Log out</a>
+    </div>
+
+    <div class="chat-section">
+        <div class="chat-container">
+            <div class="chat-header">Chat with Assistant</div>
+            <div class="chat-messages">
+                <!-- Messages will be dynamically added here -->
+            </div>
+            <div class="chat-input">
+                <input id="userInput" type="text" placeholder="Type your message...">
+                <button onclick="processUserInput()">Send</button>
+            </div>
+        </div>
+    </div>
 </div>
+
+</body>
+</html>
 
 {% endblock %}
