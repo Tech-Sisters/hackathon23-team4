@@ -6,21 +6,48 @@ from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
 def get_user_context(user):
+    '''
+    Returns four context elements:
+    lesson_words - What are the words in the current lesson? (to display in the sidebar)
+    activity - Is it a practice session (ps), a sentence test (st), a verse test (vt) or a tafseer (t)
+    activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
+    activity_number - If the activity is a ps/st, then which word are we on?
+    messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
+    user_lesson - Which lesson is the user on? (eg: "A1")
+    '''
+
     user_profile = UserProfile.objects.get(user=user)
     user_progress = user_profile.lesson_progress
-    user_lesson = user_profile.current_lesson
     user_lesson_word_queue = user_profile.my_queue.all() # returns a QuerySet of Word objects
+    lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
+    user_lesson = user_profile.current_level.letter + str(user_profile.current_lesson.number)
+
+    activity = user_progress[:2]
+    activity_name_num = user_profile.get_lesson_progress_display()
+    activity_name = ''.join(char for char in activity_name_num if char.isalpha() or char.isspace())
+    activity_number = 0
+
+    messages = []
     
-    if user_progress[:2] == "ps":
-        practice_session_number = int(user_progress[2])
-        practice_session_word = user_lesson_word_queue[practice_session_number]
-        messages = Message.objects.filter(chat_user=user, practice_session_word=practice_session_word)
+    if activity in ["ps", "st"]:
+        activity_number = int(user_progress[2])
+        if activity == "ps" and activity_number>=1:
+            activity_word = user_lesson_word_queue[activity_number-1]
+            messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word)
 
-    if user_progress == "ps0": # User has not started practice session
-        context = ""
+    
+    context = {
+        "lesson_words": lesson_words,
+        "activity": activity,
+        "activity_name": activity_name,
+        "activity_number": activity_number,
+        "messages": messages,
+        "lesson": user_lesson,
+    }
 
+    # print(context)
 
-    # return progress_context
+    return context
 
 # Landing/Chatbot page
 def index(request):
@@ -30,10 +57,8 @@ def index(request):
     """
 
     if request.user.is_authenticated:
-        
-        # TODO
-        # context = get_user_context(request.user)
-        return render(request, "chatbot/chatbot.html")
+        context = get_user_context(request.user)
+        return render(request, "chatbot/chatbot.html", context=context)
     
     else:
         return render(request, "chatbot/index.html")

@@ -11,6 +11,14 @@
 <div>
     <h1>Welcome to Iqra.ai</h1>
     <a class="btn btn-primary" href="{% url 'logout' %}" role="button">Log out</a>
+    <h4>My Queue<h4>
+    <ol>
+        {% for word in lesson_words %}
+        <li>{{ word }}</li>
+        {% endfor %}
+    </ol>
+    <h1>Lesson {{ lesson }}</h1>
+    <h2>{{ activity_name }}</h2>
 </div>
 
 {% endblock %}
