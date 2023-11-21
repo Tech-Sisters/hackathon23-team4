@@ -2,8 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.db import IntegrityError
-
+from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
 # Landing/Chatbot page
@@ -86,9 +85,19 @@ def register(request):
                 "message": "Username already taken."
             })
         
-        
-        # Create a user profile
+        # Create user's profile
         profile = UserProfile(user=user)
+        with transaction.atomic():
+
+            current_level, created = Level.objects.get_or_create(letter='A')
+            profile.current_level = current_level
+
+            current_lesson, created = Lesson.objects.get_or_create(level=current_level, number=1)
+            profile.current_lesson = current_lesson
+
+            lesson_words = current_lesson.words.all()
+            profile.my_queue.set(lesson_words)  # Set replaces the current contents of the related set with a new one
+
         profile.save()
 
         # Log in the user
