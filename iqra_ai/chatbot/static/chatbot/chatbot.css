@@ -98,3 +98,14 @@ button {
     border-radius: 5px;
     cursor: pointer;
 }
+
+.bubble {
+    position: absolute;
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    cursor: pointer;
+}
