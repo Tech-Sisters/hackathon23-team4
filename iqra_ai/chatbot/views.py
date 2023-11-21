@@ -5,6 +5,23 @@ from django.urls import reverse
 from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
+def get_user_context(user):
+    user_profile = UserProfile.objects.get(user=user)
+    user_progress = user_profile.lesson_progress
+    user_lesson = user_profile.current_lesson
+    user_lesson_word_queue = user_profile.my_queue.all() # returns a QuerySet of Word objects
+    
+    if user_progress[:2] == "ps":
+        practice_session_number = int(user_progress[2])
+        practice_session_word = user_lesson_word_queue[practice_session_number]
+        messages = Message.objects.filter(chat_user=user, practice_session_word=practice_session_word)
+
+    if user_progress == "ps0": # User has not started practice session
+        context = ""
+
+
+    # return progress_context
+
 # Landing/Chatbot page
 def index(request):
     """
@@ -13,6 +30,9 @@ def index(request):
     """
 
     if request.user.is_authenticated:
+        
+        # TODO
+        # context = get_user_context(request.user)
         return render(request, "chatbot/chatbot.html")
     
     else:
@@ -95,8 +115,12 @@ def register(request):
             current_lesson, created = Lesson.objects.get_or_create(level=current_level, number=1)
             profile.current_lesson = current_lesson
 
+            profile.save()
+
             lesson_words = current_lesson.words.all()
             profile.my_queue.set(lesson_words)  # Set replaces the current contents of the related set with a new one
+
+            profile.lesson_progress = 'ps0'
 
         profile.save()
 
