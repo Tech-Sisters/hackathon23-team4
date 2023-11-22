@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.http import JsonResponse
+import json
 from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
@@ -27,13 +30,15 @@ def get_user_context(user):
     activity_name = ''.join(char for char in activity_name_num if char.isalpha() or char.isspace())
     activity_number = 0
 
-    messages = []
+    message_content_list = []
     
     if activity in ["ps", "st"]:
         activity_number = int(user_progress[2])
         if activity == "ps" and activity_number>=1:
             activity_word = user_lesson_word_queue[activity_number-1]
-            messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word)
+            messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word).order_by('creation')
+            message_content_list = list(messages.values_list('content', flat=True))
+
 
     
     context = {
@@ -41,7 +46,7 @@ def get_user_context(user):
         "activity": activity,
         "activity_name": activity_name,
         "activity_number": activity_number,
-        "messages": messages,
+        "messages": message_content_list,
         "lesson": user_lesson,
     }
 
@@ -63,6 +68,42 @@ def index(request):
     else:
         return render(request, "chatbot/index.html")
        
+# Save Messages sent by user
+@login_required
+def save_message(request):
+    
+    # Saving a new message must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Load message
+    data = json.loads(request.body)
+    message = data.get("message")
+    print("MESSAGE:",message)
+    if message == "":
+        return JsonResponse({
+            "error": "No message found!"
+        }, status=400)
+    
+    return JsonResponse({"message": "Message saved successfully."}, status=201)
+    
+@login_required
+def save_lesson_progress(request):
+    # Saving a new message must be via POST
+    if request.method != "PUT":
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+    # Load message
+    data = json.loads(request.body)
+    lesson_progress = data.get("lesson_progress")
+    print("lesson_progress:",lesson_progress)
+    if lesson_progress == "":
+        return JsonResponse({
+            "error": "No message found!"
+        }, status=400)
+    
+    return JsonResponse({"message": "Lesson progress saved successfully."}, status=201)
+
 
 # Login page
 def login_view(request):

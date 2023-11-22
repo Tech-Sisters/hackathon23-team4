@@ -138,3 +138,19 @@ button {
     z-index: 999;
     cursor: pointer;
 }
+
+.start-session-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Adjust the padding as needed */
+}
+
+.start-activity-btn {
+    padding: 10px;
+    background-color: #128C7E;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
