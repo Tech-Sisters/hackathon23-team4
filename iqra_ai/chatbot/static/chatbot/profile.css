@@ -1,0 +1,72 @@
+/* profile.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;  /* Background color for the profile page */
+}
+
+.navbar {
+    background-color: #128C7E;  /* Navbar background color */
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+.profile-button {
+    margin-right: 10px;  /* Adjust the margin as needed */
+}
+
+.profile-button button {
+    background-color: #128C7E;  /* Profile button background color */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.profile-button button:hover {
+    background-color: #0d6e5a;  /* Adjust the color on hover as needed */
+}
+
+.dropdown-menu {
+    background-color: #fff;  /* Dropdown menu background color */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    color: #333;  /* Dropdown item text color */
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;  /* Adjust the color on hover as needed */
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;  /* Container background color */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+h1 {
+    color: #128C7E;  /* Heading color */
+}
+
+p {
+    color: #333;  /* Text color */
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 10px;
+    color: #555;  /* List item text color */
+}

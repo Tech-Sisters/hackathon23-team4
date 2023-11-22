@@ -8,6 +8,21 @@ import json
 from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
+def profile(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    current_lesson = user_profile.current_lesson
+    my_queue_words = user_profile.my_queue.all()
+    my_vocab_words = user_profile.my_vocab.all()
+
+    context = {
+        'user_profile': user_profile,
+        'current_lesson': current_lesson,
+        'my_queue_words': my_queue_words,
+        'my_vocab_words': my_vocab_words,
+    }
+
+    return render(request, 'chatbot/profile.html', context)
+
 def get_user_context(user):
     '''
     Returns four context elements:
