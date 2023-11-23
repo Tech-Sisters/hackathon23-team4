@@ -18,7 +18,6 @@ function initializeChat() {
     // messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
     // user_lesson - Which lesson is the user on? (eg: "A1")
     var messageCounter = 0;
-    let sentenceTestIndex = activity_number-1;
 
     begin();
 
@@ -40,7 +39,9 @@ function initializeChat() {
             }
 
         } else if (activity === 'st') {
+            // console.log("ACTIVITY IS ST!");
             if (activity_number === 0) {
+                // console.log("ACTIVITY_NUMBER IS 0!");
                 startButton();
             } else {
                 startSentenceTestWord();
@@ -55,8 +56,10 @@ function initializeChat() {
 
     // Add a new function to handle sentence test words
     function startSentenceTestWord() {
+        const sentenceTestIndex = activity_number-1
         if (sentenceTestIndex < 5) {
             const sentenceTestWord = lesson_words[sentenceTestIndex];
+            console.log(lesson_words, sentenceTestIndex);
             const botMessage = `Translate: "${sentenceTestWord}"`;
             addBotMessage(botMessage);
             // Add logic to handle user response and check correctness (not implemented in this example)
@@ -71,19 +74,25 @@ function initializeChat() {
     function startButton() {
         chatInput.style.display = 'none'; // hide the input field
         const startButton = createButtonElement('Start '+activity_name);
-        startButton.addEventListener('click', function() {
-            console.log(activity)
+        startSessionContainer.style.display = 'flex'; // show the start session button
+        startSessionContainer.innerHTML = ''; // Clear the content of startSessionContainer
+        // console.log(startButton); 
+        startButton.addEventListener('click', async function() {
+            // console.log(activity)
             if (['ps','st'].includes(activity)) {
-                var lesson_progress = activity + '1'
-                sendProgressToBackend(lesson_progress)
-            }
-            if (activity === 'st') {
-                startSentenceTestWord();
-            }
+                var lesson_progress = activity + '1';
+                await sendProgressToBackend(lesson_progress).then(() => {
+                    if (activity === 'st') {
+                        startSentenceTestWord();
+                    }
+                    // if practice session, then send the 5 words to user
+                });
+            }            
             startSessionContainer.style.display = 'none'; // hide the start session button
             chatInput.style.display = 'flex'; // show the input field
         });
         startSessionContainer.appendChild(startButton);
+        // console.log("ADDED A BUTTON");
     }
 
     function createButtonElement(activity_btn_msg) {
@@ -204,8 +213,6 @@ function initializeChat() {
                     }
                     await sendProgressToBackend(lesson_progress)
 
-                    sentenceTestIndex++;
-
                 } else {
                     botMessage = "That's not right, try again!";
                 }
@@ -310,9 +317,10 @@ function initializeChat() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    userInput.addEventListener('keyup', event => {
+    userInput.addEventListener('keyup', async event => {
         if (event.key === 'Enter') {
-            processUserInput();
+            await processUserInput();
         }
     });
 }
+
