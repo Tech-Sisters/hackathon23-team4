@@ -13,4 +13,5 @@ urlpatterns = [
     # API Routes
     path("save_message", views.save_message, name="save_message"),
     path("save_lesson_progress", views.save_lesson_progress, name="save_lesson_progress"),
+    path("create_bot_response", views.create_bot_response, name="create_bot_response"),
 ]

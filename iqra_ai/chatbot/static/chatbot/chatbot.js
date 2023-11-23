@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeChat() {
-    const chatContainer = document.querySelector('.chat-container');
+    // const chatContainer = document.querySelector('.chat-container');
     const startSessionContainer = document.querySelector('.start-session-container');
     const chatInput = document.querySelector('.chat-input');
     
@@ -18,32 +18,72 @@ function initializeChat() {
     // messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
     // user_lesson - Which lesson is the user on? (eg: "A1")
     var messageCounter = 0;
-
+    let sentenceTestIndex = activity_number-1;
 
     begin();
 
     function begin() {
+        console.log(activity+activity_number);
 
-        if (activity_number === "0") {
-            chatInput.style.display = 'none'; // hide the input field
-            const startButton = createButtonElement('Start '+activity_name);
-            startButton.addEventListener('click', function() {
-                startSessionContainer.style.display = 'none'; // hide the start session button
-                chatInput.style.display = 'flex'; // show the input field
-            });
-            startSessionContainer.appendChild(startButton);
-        } else {
-            if (activity == "ps") {
+        if (activity === "ps") {
+            if (activity_number === 0) {
+                startButton();
+            } else {
                 messages_num = messages.length;
                 for (var i=0; i<messages_num; i++) {
                     if (i%2==0) {
                         addUserMessage(messages[i]);
                     } else {
-                        addAssistantMessage(messages[i]);
+                        addBotMessage(messages[i]);
                     }
                 }
             }
+
+        } else if (activity === 'st') {
+            if (activity_number === 0) {
+                startButton();
+            } else {
+                startSentenceTestWord();
+            }
+
+        } else if (activity === 'vt') {
+            console.log("ENTERED IF BLOCK! ");
+            startButton();
         }
+
+    }
+
+    // Add a new function to handle sentence test words
+    function startSentenceTestWord() {
+        if (sentenceTestIndex < 5) {
+            const sentenceTestWord = lesson_words[sentenceTestIndex];
+            const botMessage = `Translate: "${sentenceTestWord}"`;
+            addBotMessage(botMessage);
+            // Add logic to handle user response and check correctness (not implemented in this example)
+            // After handling user response, move on to the next word
+        } else {
+            // Move on to the next phase (e.g., verse test)
+            // You can implement logic or call a function here to handle the next phase
+            console.log('Sentence tests completed. Moving on to the next phase.');
+        }
+    }
+
+    function startButton() {
+        chatInput.style.display = 'none'; // hide the input field
+        const startButton = createButtonElement('Start '+activity_name);
+        startButton.addEventListener('click', function() {
+            console.log(activity)
+            if (['ps','st'].includes(activity)) {
+                var lesson_progress = activity + '1'
+                sendProgressToBackend(lesson_progress)
+            }
+            if (activity === 'st') {
+                startSentenceTestWord();
+            }
+            startSessionContainer.style.display = 'none'; // hide the start session button
+            chatInput.style.display = 'flex'; // show the input field
+        });
+        startSessionContainer.appendChild(startButton);
     }
 
     function createButtonElement(activity_btn_msg) {
@@ -60,7 +100,7 @@ function initializeChat() {
         scrollToBottom();
     }
 
-    function addAssistantMessage(message) {
+    function addBotMessage(message) {
         const assistantMessage = createMessageElement(message, 'assistant-message', true);
         chatMessages.appendChild(assistantMessage);
         scrollToBottom();
@@ -72,6 +112,7 @@ function initializeChat() {
         messageElement.classList.add('message', className);
 
         if (isAssistant) {
+            // console.log(message)
             const words = message.split(' ');
             const wordContainer = document.createElement('div');
             words.forEach(word => {
@@ -87,7 +128,7 @@ function initializeChat() {
         }
         
         messageCounter++;
-        console.log(messageCounter)
+        console.log("Messages so far: ",messageCounter)
 
         return messageElement;
     }
@@ -114,7 +155,7 @@ function initializeChat() {
     }
 
     // Handle user messages
-    function processUserInput() {
+    async function processUserInput() {
         const userMessage = userInput.value.trim();
         if (userMessage !== '') {
 
@@ -122,32 +163,107 @@ function initializeChat() {
             addUserMessage(userMessage);
 
             // Send user message to the Django backend
-            sendMessageToBackend(userMessage);
-
-            simulateBotResponse();
+            await sendMessageToBackend(userMessage)
             userInput.value = '';
+
+            if (activity==="ps") {
+                if (messageCounter < 7) {
+                    const botMessage = await get_bot_response(userMessage, "chat_completion");
+                    // console.log(`${20-messageCounter} messages left. Bot message incoming: ${botMessage}`)
+                    addBotMessage(botMessage);
+                } else {
+                    console.log('20 MESSAGES DONE');
+                    const botMessage = await get_bot_response(userMessage, "chat_completion");
+                    addBotMessage(botMessage);
+                    
+                    // update ps activity number through fetch
+                    console.log("type of activity_number:",typeof(activity_number))
+                    var lesson_progress = 'ps' + (activity_number+1);
+
+                    if (lesson_progress === 'ps6') {
+                        lesson_progress = 'st0'
+                    }
+
+                    console.log("new lesson_progress: "+lesson_progress)
+                    await sendProgressToBackend(lesson_progress);
+
+                    messageCounter = 0;
+            }
+        }
+    
+            if (activity === "st" && activity_number >= 1) {
+                // const result = get_bot_response(userMessage, "correct_translation"); // Should be "correct" or "wrong"
+                const result = "correct";
+                var botMessage;
+                if (result === "correct") {
+                    botMessage = "That is the right translation!";
+
+                    var lesson_progress = 'st' + (activity_number+1);
+                    if (lesson_progress === 'st6') {
+                        lesson_progress = 'vt'
+                    }
+                    await sendProgressToBackend(lesson_progress)
+
+                    sentenceTestIndex++;
+
+                } else {
+                    botMessage = "That's not right, try again!";
+                }
+                addBotMessage(botMessage);
+                startSentenceTestWord();
+            }
+            
+            // lesson_progress is undefined when user enters something in vt currently
+            if (['st0','vt','t'].includes(lesson_progress)) {
+                begin()
+            }
+
         }
     }
     
-    function sendMessageToBackend(message) {
+    async function sendMessageToBackend(message) {
         const url = "/save_message";
         const method = "POST";
         const body = {message: message};
-        sendContentToBackend(url, method, body)
-        .then(data => console.log('POST response:', data))
-        .catch(error => console.error('Error:', error));
+        try {
+            const data = await makeRequest(url, method, body);
+            console.log('POST response:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 
-    function sendProgressToBackend(lesson_progress) {
+    async function sendProgressToBackend(lesson_progress) {
         const url = "/save_lesson_progress";
         const method = "PUT";
         const body = {lesson_progress: lesson_progress};
-        sendContentToBackend(url, method, body)
-        .then(data => console.log('PUT response:', data))
-        .catch(error => console.error('Error:', error));
+        try {
+            const data = await makeRequest(url, method, body);
+            console.log('PUT response:', data, activity+activity_number);
+            updateLocalProgress(lesson_progress);
+        } catch (error) {
+            console.error('Error:', error);
+        }
     }
 
-    async function sendContentToBackend(url, method, body = null) {
+    async function get_bot_response(userMessage, command) {
+        // console.log("User message received:", userMessage)
+        const url = "/create_bot_response";
+        const method = "POST";
+        const body = {
+            userMessage: userMessage,
+            command: command,
+        };
+        try {
+            const data = await makeRequest(url, method, body);
+            console.log('POST response:', data);
+            return data.bot_message
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function makeRequest(url, method, body = null) {
 
         const options = {
             method: method,
@@ -173,28 +289,20 @@ function initializeChat() {
             throw error;
         }
     }
-    
-    // Handle bot messages
-    function simulateBotResponse() {
-        // Simulate a bot response (you can replace this with actual API call or other logic)
-        const botMessage = lesson_words[0];
-        console.log(botMessage);
-        setTimeout(() => {
 
-            // Actually add bot messages to html
-            addAssistantMessage(botMessage);
-
-            // Send bot message to the Django backend
-            // sendMessageToBackend(botMessage);
-            // Above line has been commented out since messages from bot can be saved directly from the response of the openAI API call
-
-        }, 500);
-        if (activity==="ps" && messageCounter >= 20) {
-            console.log('20 MESSAGES DONE');
-            // update ps activity number through fetch
-            var lesson_progress = 'ps' + (activity_number+1);
-            sendProgressToBackend(lesson_progress);
-        
+    function updateLocalProgress(lesson_progress) {
+        activity = lesson_progress.slice(0,2);
+        activity_obj = {
+            ps: "Practice Session",
+            st: "Sentence Test",
+            vt: "Verse Test",
+            t: "Tafseer",
+        };
+        activity_name = activity_obj[activity];
+        if (["ps","st"].includes(activity)) {
+            activity_number = parseInt(lesson_progress.slice(-1));
+        } else {
+            activity_number = 0;
         }
     }
 
@@ -208,10 +316,3 @@ function initializeChat() {
         }
     });
 }
-
-
-// TODO
-// DONE: Send request of new lesson_progress when practice session of word 1 is done
-// Handle lesson_progress at backend
-// Then take user to word 2 (provide a non-intrusive button ideally, don't clear the chat)
-// The logic should repeat itself, while taking lesson_progress into consideration (using if statements)

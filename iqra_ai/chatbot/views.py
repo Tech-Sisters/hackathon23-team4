@@ -26,6 +26,21 @@ def profile(request):
 
     return render(request, 'chatbot/profile.html', context)
 
+def get_current_word(user):
+    user_profile = UserProfile.objects.get(user=user)
+    user_progress = user_profile.lesson_progress
+    user_lesson_word_queue = user_profile.my_queue.all() # returns a QuerySet of Word objects
+    activity_number = 0
+    if user_progress[-1].isdigit():
+        activity_number = int(user_progress[-1])
+
+    if activity_number>=1:
+        activity_word = user_lesson_word_queue[activity_number-1]
+    else:
+        activity_word = user_lesson_word_queue[0]
+
+    return activity_word
+  
 def get_user_context(user):
     '''
     Returns four context elements:
@@ -39,7 +54,6 @@ def get_user_context(user):
 
     user_profile = UserProfile.objects.get(user=user)
     user_progress = user_profile.lesson_progress
-    user_lesson_word_queue = user_profile.my_queue.all() # returns a QuerySet of Word objects
     lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
     user_lesson = user_profile.current_level.letter + str(user_profile.current_lesson.number)
 
@@ -53,7 +67,7 @@ def get_user_context(user):
     if activity in ["ps", "st"]:
         activity_number = int(user_progress[2])
         if activity == "ps" and activity_number>=1:
-            activity_word = user_lesson_word_queue[activity_number-1]
+            activity_word = get_current_word(user)
             messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word).order_by('creation')
             message_content_list = list(messages.values_list('content', flat=True))
 
@@ -102,8 +116,47 @@ def save_message(request):
         return JsonResponse({
             "error": "No message found!"
         }, status=400)
+    else:
+        practice_session_word = get_current_word(user=request.user)
+        with transaction.atomic():
+            message_object = Message(chat_user=request.user, content=message, sender="user", message_type="lesson")
+            message_object.save()
+            message_object.practice_session_word.add(practice_session_word)
+
+        return JsonResponse({
+            "message": "Message saved successfully.",
+        }, status=201)
     
-    return JsonResponse({"message": "Message saved successfully."}, status=201)
+def create_bot_response(request):
+    
+    # Saving a new message must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Load message
+    data = json.loads(request.body)
+    user_message = data.get("userMessage")
+    command = data.get("command")
+    print("user_message:",user_message)
+    if user_message == "":
+        return JsonResponse({
+            "error": "No prompt found!"
+        }, status=400)
+    
+    else:
+        practice_session_word = get_current_word(user=request.user)
+        # TODO
+        # Replace below with actual API call to openAI (create a separate function)
+        bot_message = f"Your word is {practice_session_word} (command: {command})"
+        
+        with transaction.atomic():
+            message_object = Message(chat_user=request.user, content=bot_message, sender="bot", message_type="lesson")
+            message_object.save()
+            message_object.practice_session_word.add(practice_session_word)
+        
+        return JsonResponse({
+            "bot_message": bot_message,
+        }, status=201)
     
 @login_required
 def save_lesson_progress(request):
@@ -119,7 +172,12 @@ def save_lesson_progress(request):
         return JsonResponse({
             "error": "No message found!"
         }, status=400)
-    
+    else:
+        with transaction.atomic():
+            user_profile = UserProfile.objects.get(user=request.user)
+            user_profile.lesson_progress = lesson_progress
+            user_profile.save()
+
     return JsonResponse({"message": "Lesson progress saved successfully."}, status=201)
 
 
