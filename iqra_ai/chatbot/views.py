@@ -8,6 +8,24 @@ import json
 from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
+def instructions(request):
+    return render(request, "chatbot/instructions.html")
+
+def profile(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+    current_lesson = user_profile.current_lesson
+    my_queue_words = user_profile.my_queue.all()
+    my_vocab_words = user_profile.my_vocab.all()
+
+    context = {
+        'user_profile': user_profile,
+        'current_lesson': current_lesson,
+        'my_queue_words': my_queue_words,
+        'my_vocab_words': my_vocab_words,
+    }
+
+    return render(request, 'chatbot/profile.html', context)
+
 def get_current_word(user):
     user_profile = UserProfile.objects.get(user=user)
     user_progress = user_profile.lesson_progress
@@ -22,8 +40,7 @@ def get_current_word(user):
         activity_word = user_lesson_word_queue[0]
 
     return activity_word
-
-
+  
 def get_user_context(user):
     '''
     Returns four context elements:
@@ -252,6 +269,9 @@ def register(request):
         # Log in the user
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
+
+        # Redirect to the instructions page
+        return redirect("instructions")
     
     else:
         # Display the registration form
