@@ -8,6 +8,9 @@ import json
 from django.db import IntegrityError, transaction
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
+def instructions(request):
+    return render(request, "chatbot/instructions.html")
+
 def profile(request):
     user_profile = UserProfile.objects.get(user=request.user)
     current_lesson = user_profile.current_lesson
@@ -208,6 +211,9 @@ def register(request):
         # Log in the user
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
+
+        # Redirect to the instructions page
+        return redirect("instructions")
     
     else:
         # Display the registration form

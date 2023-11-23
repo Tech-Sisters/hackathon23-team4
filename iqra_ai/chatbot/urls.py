@@ -8,6 +8,7 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("register", views.register, name="register"),
     path("profile/", views.profile, name="profile"),
+    path("instructions", views.instructions, name="instructions"),
 
     # API Routes
     path("save_message", views.save_message, name="save_message"),
