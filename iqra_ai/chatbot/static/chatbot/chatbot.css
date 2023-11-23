@@ -29,7 +29,7 @@ body {
     position: relative;
     background-size: cover;
     background-position: center;
-    background: url('example.jpg') center/cover;
+    /* background-image: url('example.jpg'); */
 }
 
 .chat-container {
