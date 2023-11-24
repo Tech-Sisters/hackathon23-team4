@@ -10,7 +10,7 @@ function initializeChat() {
     const chatMessages = document.querySelector('.chat-messages');
     const userInput = document.getElementById('userInput');
 
-    // VARIABLES FROM HTML:
+    // letIABLES FROM HTML:
     // lesson_words - What are the words in the current lesson? (to display in the sidebar)
     // activity - Is it a practice session (ps), a sentence test (st), a verse test (vt) or a tafseer (t)
     // activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
@@ -18,9 +18,9 @@ function initializeChat() {
     // messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
     // user_level - Which level is the user on? (eg: "A")
     // user_lesson - Which lesson is the user on? (eg: 1)
-    var messageCounter = 0;
-    var sentenceTestTries = 0;
-    var verseTestTries = 0;
+    let messageCounter = 0;
+    let sentenceTestTries = 0;
+    let verseTestTries = 0;
 
     begin();
 
@@ -32,7 +32,7 @@ function initializeChat() {
                 startButton();
             } else {
                 messages_num = messages.length;
-                for (var i=0; i<messages_num; i++) {
+                for (let i=0; i<messages_num; i++) {
                     if (i%2==0) {
                         addUserMessage(messages[i]);
                     } else {
@@ -95,8 +95,26 @@ function initializeChat() {
         // const botMessage = get_bot_response(null, "tafseer");
         const botMessage = "The tafseer is this:";
         addBotMessage(botMessage);
+        startNextLevel();
+    }   
+
+    function startNextLevel() {
+        chatInput.style.display = 'none'; // hide the input field
+        const startButton = createButtonElement('Start next level');
+
+        startSessionContainer.style.display = 'flex'; // show startSessionContainer
+        startSessionContainer.innerHTML = ''; // Clear the content of startSessionContainer
+
+        let next_level = getNextLetter(user_level);
+
+        startButton.addEventListener('click', async function() {
+            await sendProgressToBackend('ps0',1,next_level).then(() => {
+                updateLocalLessonLevel(1,next_level);
+                begin();
+            })
+        });
+        startSessionContainer.appendChild(startButton);
     }
-        
 
     function startButton() {
 
@@ -113,7 +131,7 @@ function initializeChat() {
             chatInput.style.display = 'flex'; // show the input field
 
             if (['ps','st'].includes(activity)) {
-                var lesson_progress = activity + '1';
+                let lesson_progress = activity + '1';
                 await sendProgressToBackend(lesson_progress).then(() => {
                     if (activity === 'st') {
                         startSentenceTestWord();
@@ -209,6 +227,8 @@ function initializeChat() {
             await sendMessageToBackend(userMessage)
             userInput.value = '';
 
+            let lesson_progress;
+
             if (activity==="ps") {
                 if (messageCounter < 1) {
                     const botMessage = await get_bot_response(userMessage, "chat_completion");
@@ -221,7 +241,7 @@ function initializeChat() {
                     
                     console.log(activity+activity_number,"done")
                     // update ps activity number through fetch
-                    var lesson_progress = 'ps' + (activity_number+1);
+                    lesson_progress = 'ps' + (activity_number+1);
 
                     if (lesson_progress === 'ps6') {
                         lesson_progress = 'st0'
@@ -234,12 +254,12 @@ function initializeChat() {
                 }
             } else if (activity === "st" && activity_number >= 1) {
                 // const result = get_bot_response(userMessage, "correct_translation"); // Should be "correct" or "wrong"
-                const result = "right";
-                var botMessage;
+                const result = "correct";
+                let botMessage;
                 if (result === "correct") {
                     botMessage = "That is the right translation!";
 
-                    var lesson_progress = 'st' + (activity_number+1);
+                    lesson_progress = 'st' + (activity_number+1);
 
                     if (lesson_progress === 'st6') {
 
@@ -251,7 +271,7 @@ function initializeChat() {
                         } else {
                             // User has completed sentence test of lesson 1 and is going to start lesson 2
                             lesson_progress = 'ps0';
-                            user_lesson++;
+                            updateLocalLessonLevel(user_lesson+1,user_level);
                         }
                     }
                     await sendProgressToBackend(lesson_progress)
@@ -262,7 +282,7 @@ function initializeChat() {
                 } else {
                     botMessage = "You have incorrectly translated 3 times. Please go back to practice sessions";
                     sentenceTestTries = 0;
-                    var lesson_progress = 'ps0';
+                    lesson_progress = 'ps0';
                     await sendProgressToBackend(lesson_progress);
                 }
                 addBotMessage(botMessage);
@@ -272,12 +292,13 @@ function initializeChat() {
             } else if (activity == "vt") {
                 // Check correctness (you need to implement actual correctness check)
                 // const result = get_bot_response(userMessage, "correct_translation"); // Should be "correct" or "wrong"
-                const result = "right";
+                const result = "correct";
+                let botMessage;
                     
                 if (result === "correct") {
                     botMessage = "That is the right translation!";
 
-                    var lesson_progress = 't';
+                    lesson_progress = 't';
                     await sendProgressToBackend(lesson_progress);
 
                 } else if (verseTestTries < 2) {
@@ -286,7 +307,7 @@ function initializeChat() {
                 } else {
                     botMessage = "You have incorrectly translated the verse 3 times";
                     verseTestTries = 0;
-                    var lesson_progress = 't';
+                    lesson_progress = 't';
                     await sendProgressToBackend(lesson_progress);
                 }
                 addBotMessage(botMessage);
@@ -316,16 +337,19 @@ function initializeChat() {
         }
     }
 
-    async function sendProgressToBackend(lesson_progress) {
+    async function sendProgressToBackend(lesson_progress, currentLesson=false, currentLevel=false) {
+        currentLesson = currentLesson ? currentLesson : user_lesson;
+        currentLevel = currentLevel ? currentLevel : user_level;
         const url = "/save_lesson_progress";
         const method = "PUT";
         const body = {
             lesson_progress: lesson_progress,
-            user_lesson: user_lesson,
+            user_lesson: currentLesson,
+            user_level: currentLevel,
         };
         try {
             const data = await makeRequest(url, method, body);
-            console.log('PUT response:', data, lesson_progress, user_lesson);
+            console.log('PUT response:', data, lesson_progress, currentLesson, currentLevel);
             updateLocalProgress(lesson_progress);
         } catch (error) {
             console.error('Error:', error);
@@ -390,6 +414,24 @@ function initializeChat() {
         } else {
             activity_number = 0;
         }
+    }
+
+    function updateLocalLessonLevel(lesson, level) {
+        user_lesson = lesson;
+        user_level = level;
+    }
+
+    function getNextLetter(letter) {
+        const code = letter.charCodeAt(0);
+        let next_level;
+        if (code >= 65 && code <= 89) {
+            // Uppercase letter (A-Y)
+            next_level = String.fromCharCode((code - 65 + 1) % 26 + 65);
+        } else {
+            throw new Error('Invalid input. Please provide a capital letter (A-Y).');
+        }
+
+        return next_level;
     }
 
     function scrollToBottom() {

@@ -171,6 +171,7 @@ def save_lesson_progress(request):
     data = json.loads(request.body)
     lesson_progress = data.get("lesson_progress")
     user_lesson = data.get("user_lesson")
+    user_level = data.get("user_level")
     print("lesson_progress:",lesson_progress)
     if lesson_progress == "" or user_lesson== "":
         return JsonResponse({
@@ -181,9 +182,12 @@ def save_lesson_progress(request):
             user_profile = UserProfile.objects.get(user=request.user)
             user_profile.lesson_progress = lesson_progress
 
-            current_lesson = Lesson.objects.get(level=user_profile.current_level, number=user_lesson)
-            user_profile.current_lesson = current_lesson
+            current_level = Level.objects.get(letter=user_level)
+            user_profile.current_level = current_level
             
+            current_lesson = Lesson.objects.get(level=current_level, number=user_lesson)
+            user_profile.current_lesson = current_lesson
+
             user_profile.save()
 
     return JsonResponse({"message": "Lesson progress saved successfully."}, status=201)
