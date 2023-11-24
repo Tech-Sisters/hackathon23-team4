@@ -49,13 +49,15 @@ def get_user_context(user):
     activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
     activity_number - If the activity is a ps/st, then which word are we on?
     messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
-    user_lesson - Which lesson is the user on? (eg: "A1")
+    user_level - Which level is the user on? (eg: "A")
+    user_lesson - Which lesson is the user on? (eg: 1)
     '''
 
     user_profile = UserProfile.objects.get(user=user)
     user_progress = user_profile.lesson_progress
     lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
-    user_lesson = user_profile.current_level.letter + str(user_profile.current_lesson.number)
+    user_level = user_profile.current_level.letter
+    user_lesson = user_profile.current_lesson.number
 
     activity = user_progress[:2]
     activity_name_num = user_profile.get_lesson_progress_display()
@@ -79,7 +81,8 @@ def get_user_context(user):
         "activity_name": activity_name,
         "activity_number": activity_number,
         "messages": message_content_list,
-        "lesson": user_lesson,
+        "user_level": user_level,
+        "user_lesson": user_lesson,
     }
 
     # print(context)
@@ -167,15 +170,20 @@ def save_lesson_progress(request):
     # Load message
     data = json.loads(request.body)
     lesson_progress = data.get("lesson_progress")
+    user_lesson = data.get("user_lesson")
     print("lesson_progress:",lesson_progress)
-    if lesson_progress == "":
+    if lesson_progress == "" or user_lesson== "":
         return JsonResponse({
-            "error": "No message found!"
+            "error": "No lesson_progress/user_lesson found!"
         }, status=400)
     else:
         with transaction.atomic():
             user_profile = UserProfile.objects.get(user=request.user)
             user_profile.lesson_progress = lesson_progress
+
+            current_lesson = Lesson.objects.get(level=user_profile.current_level, number=user_lesson)
+            user_profile.current_lesson = current_lesson
+            
             user_profile.save()
 
     return JsonResponse({"message": "Lesson progress saved successfully."}, status=201)

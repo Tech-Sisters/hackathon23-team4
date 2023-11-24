@@ -16,13 +16,16 @@ function initializeChat() {
     // activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
     // activity_number - If the activity is a ps/st, then which word are we on?
     // messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
-    // user_lesson - Which lesson is the user on? (eg: "A1")
+    // user_level - Which level is the user on? (eg: "A")
+    // user_lesson - Which lesson is the user on? (eg: 1)
     var messageCounter = 0;
+    var sentenceTestTries = 0;
+    var verseTestTries = 0;
 
     begin();
 
     function begin() {
-        console.log(activity+activity_number);
+        console.log("begin ",activity+activity_number);
 
         if (activity === "ps") {
             if (activity_number === 0) {
@@ -48,7 +51,10 @@ function initializeChat() {
             }
 
         } else if (activity === 'vt') {
-            console.log("ENTERED IF BLOCK! ");
+            console.log("begin vt");
+            startButton();
+        } else if (activity === 't') {
+            console.log("begin tafseer");
             startButton();
         }
 
@@ -58,9 +64,8 @@ function initializeChat() {
     function startSentenceTestWord() {
         const sentenceTestIndex = activity_number-1
         if (sentenceTestIndex < 5) {
-            const sentenceTestWord = lesson_words[sentenceTestIndex];
-            console.log(lesson_words, sentenceTestIndex);
-            const botMessage = `Translate: "${sentenceTestWord}"`;
+            const sentenceTestWord = lesson_words[sentenceTestIndex]; // replace with api call
+            const botMessage = `Translate: "${sentenceTestWord}"`; 
             addBotMessage(botMessage);
             // Add logic to handle user response and check correctness (not implemented in this example)
             // After handling user response, move on to the next word
@@ -71,14 +76,42 @@ function initializeChat() {
         }
     }
 
+    function startVerseTest() {
+        const verseTestIndex = activity_number - 1;
+    
+        if (verseTestIndex < 5) {
+            const verseToTranslate = "وَإِنْ كُنْتُمْ فِي رَيْبٍ مِمَّا نَزَّلْنَا عَلَىٰ عَبْدِنَا فَأْتُوا بِسُورَةٍ مِنْ مِثْلِهِ" //replace with api call
+            const botMessage = `Translate the verse: "${verseToTranslate}"`;
+            addBotMessage(botMessage);
+
+        } else {
+            // Move on to the next phase (e.g., another activity)
+            console.log('Verse tests completed. Moving on to the next phase.');
+        }
+    }
+
+    function showTafseer() {
+        console.log("Showing tafseer now")
+        // const botMessage = get_bot_response(null, "tafseer");
+        const botMessage = "The tafseer is this:";
+        addBotMessage(botMessage);
+    }
+        
+
     function startButton() {
+
         chatInput.style.display = 'none'; // hide the input field
         const startButton = createButtonElement('Start '+activity_name);
-        startSessionContainer.style.display = 'flex'; // show the start session button
+        console.log("Created button for",activity_name);
+
+        startSessionContainer.style.display = 'flex'; // show startSessionContainer
         startSessionContainer.innerHTML = ''; // Clear the content of startSessionContainer
-        // console.log(startButton); 
+
         startButton.addEventListener('click', async function() {
-            // console.log(activity)
+            
+            startSessionContainer.style.display = 'none'; // hide the start session button
+            chatInput.style.display = 'flex'; // show the input field
+
             if (['ps','st'].includes(activity)) {
                 var lesson_progress = activity + '1';
                 await sendProgressToBackend(lesson_progress).then(() => {
@@ -87,12 +120,14 @@ function initializeChat() {
                     }
                     // if practice session, then send the 5 words to user
                 });
-            }            
-            startSessionContainer.style.display = 'none'; // hide the start session button
-            chatInput.style.display = 'flex'; // show the input field
+            } else if (activity=='vt') {
+                startVerseTest();
+            } else if (activity=='t') {
+                chatInput.style.display = 'none'; // hide the input field
+                showTafseer();
+            }
         });
         startSessionContainer.appendChild(startButton);
-        // console.log("ADDED A BUTTON");
     }
 
     function createButtonElement(activity_btn_msg) {
@@ -121,7 +156,6 @@ function initializeChat() {
         messageElement.classList.add('message', className);
 
         if (isAssistant) {
-            // console.log(message)
             const words = message.split(' ');
             const wordContainer = document.createElement('div');
             words.forEach(word => {
@@ -137,7 +171,7 @@ function initializeChat() {
         }
         
         messageCounter++;
-        console.log("Messages so far: ",messageCounter)
+        // console.log("Messages so far: ",messageCounter)
 
         return messageElement;
     }
@@ -176,7 +210,7 @@ function initializeChat() {
             userInput.value = '';
 
             if (activity==="ps") {
-                if (messageCounter < 7) {
+                if (messageCounter < 1) {
                     const botMessage = await get_bot_response(userMessage, "chat_completion");
                     // console.log(`${20-messageCounter} messages left. Bot message incoming: ${botMessage}`)
                     addBotMessage(botMessage);
@@ -185,8 +219,8 @@ function initializeChat() {
                     const botMessage = await get_bot_response(userMessage, "chat_completion");
                     addBotMessage(botMessage);
                     
+                    console.log(activity+activity_number,"done")
                     // update ps activity number through fetch
-                    console.log("type of activity_number:",typeof(activity_number))
                     var lesson_progress = 'ps' + (activity_number+1);
 
                     if (lesson_progress === 'ps6') {
@@ -197,31 +231,73 @@ function initializeChat() {
                     await sendProgressToBackend(lesson_progress);
 
                     messageCounter = 0;
-            }
-        }
-    
-            if (activity === "st" && activity_number >= 1) {
+                }
+            } else if (activity === "st" && activity_number >= 1) {
                 // const result = get_bot_response(userMessage, "correct_translation"); // Should be "correct" or "wrong"
-                const result = "correct";
+                const result = "right";
                 var botMessage;
                 if (result === "correct") {
                     botMessage = "That is the right translation!";
 
                     var lesson_progress = 'st' + (activity_number+1);
+
                     if (lesson_progress === 'st6') {
-                        lesson_progress = 'vt'
+
+                        // User has completed all 4 lessons in the level
+                        if (user_lesson >= 4) { 
+                            // User is ready to take the verse test
+                            lesson_progress = 'vt';
+
+                        } else {
+                            // User has completed sentence test of lesson 1 and is going to start lesson 2
+                            lesson_progress = 'ps0';
+                            user_lesson++;
+                        }
                     }
                     await sendProgressToBackend(lesson_progress)
 
-                } else {
+                } else if (sentenceTestTries < 2) {
                     botMessage = "That's not right, try again!";
+                    sentenceTestTries++;
+                } else {
+                    botMessage = "You have incorrectly translated 3 times. Please go back to practice sessions";
+                    sentenceTestTries = 0;
+                    var lesson_progress = 'ps0';
+                    await sendProgressToBackend(lesson_progress);
                 }
                 addBotMessage(botMessage);
-                startSentenceTestWord();
+                if (activity=='st') {
+                    startSentenceTestWord();
+                }
+            } else if (activity == "vt") {
+                // Check correctness (you need to implement actual correctness check)
+                // const result = get_bot_response(userMessage, "correct_translation"); // Should be "correct" or "wrong"
+                const result = "right";
+                    
+                if (result === "correct") {
+                    botMessage = "That is the right translation!";
+
+                    var lesson_progress = 't';
+                    await sendProgressToBackend(lesson_progress);
+
+                } else if (verseTestTries < 2) {
+                    botMessage = "That's not right, try again!";
+                    verseTestTries++;
+                } else {
+                    botMessage = "You have incorrectly translated the verse 3 times";
+                    verseTestTries = 0;
+                    var lesson_progress = 't';
+                    await sendProgressToBackend(lesson_progress);
+                }
+                addBotMessage(botMessage);
+
+                if (activity=='vt') {
+                    startVerseTest();
+                }
             }
             
             // lesson_progress is undefined when user enters something in vt currently
-            if (['st0','vt','t'].includes(lesson_progress)) {
+            if (['ps0','st0','vt','t'].includes(lesson_progress)) {
                 begin()
             }
 
@@ -243,10 +319,13 @@ function initializeChat() {
     async function sendProgressToBackend(lesson_progress) {
         const url = "/save_lesson_progress";
         const method = "PUT";
-        const body = {lesson_progress: lesson_progress};
+        const body = {
+            lesson_progress: lesson_progress,
+            user_lesson: user_lesson,
+        };
         try {
             const data = await makeRequest(url, method, body);
-            console.log('PUT response:', data, activity+activity_number);
+            console.log('PUT response:', data, lesson_progress, user_lesson);
             updateLocalProgress(lesson_progress);
         } catch (error) {
             console.error('Error:', error);
