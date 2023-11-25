@@ -1,11 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.http import JsonResponse
-import json
 from django.db import IntegrityError, transaction
+from django.http import HttpResponseRedirect, JsonResponse
+import json
+
+from openai import OpenAI
+from django.conf import settings
+
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
 def instructions(request):
@@ -114,6 +117,7 @@ def save_message(request):
     # Load message
     data = json.loads(request.body)
     message = data.get("message")
+    sender = data.get("sender")
     print("MESSAGE:",message)
     if message == "":
         return JsonResponse({
@@ -122,14 +126,14 @@ def save_message(request):
     else:
         practice_session_word = get_current_word(user=request.user)
         with transaction.atomic():
-            message_object = Message(chat_user=request.user, content=message, sender="user", message_type="lesson")
+            message_object = Message(chat_user=request.user, content=message, sender=sender, message_type="lesson")
             message_object.save()
             message_object.practice_session_word.add(practice_session_word)
 
         return JsonResponse({
             "message": "Message saved successfully.",
         }, status=201)
-    
+
 def create_bot_response(request):
     
     # Saving a new message must be via POST
@@ -148,19 +152,57 @@ def create_bot_response(request):
     
     else:
         practice_session_word = get_current_word(user=request.user)
-        # TODO
-        # Replace below with actual API call to openAI (create a separate function)
-        bot_message = f"Your word is {practice_session_word} (command: {command})"
+
+        if command=="practice_session":
+            prompt = f'Send a simple sentence using "{practice_session_word}". Do not send anything except the sentence in Arabic'
+            # prompt = "invalid_command"
+
+        elif command=="sentence_test":
+            prompt = f'Send a simple sentence using "{practice_session_word}". Do not send anything except the sentence in Arabic'
+
+        elif command == "correct_translation":
+            # sentence_test_message = Message.objects.get(chat_user=request.user, sender="bot", message_type="lesson",practice_session_word=practice_session_word)
+            # sentence_test = sentence_test_message.content
+            sentence_test = data.get("sentenceTest")
+            prompt = f'If the translation of "{sentence_test}" is "{user_message}", send "correct" else send "wrong"'
+            # prompt = "invalid_command"
+
+        elif command == "translate_word":
+            prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
+
+        else:
+            prompt = "invalid_command"
         
-        with transaction.atomic():
-            message_object = Message(chat_user=request.user, content=bot_message, sender="bot", message_type="lesson")
-            message_object.save()
-            message_object.practice_session_word.add(practice_session_word)
+        print(prompt)
+        if prompt != "invalid_command":
+            try:
+                bot_message = generate_response_gpt3(prompt)
+            except Exception as e:
+                print(e)
+                bot_message = f"Your word is {practice_session_word} (command: {command})"
+        else:
+            bot_message = f"Your word is {practice_session_word} (command: {command})"
         
         return JsonResponse({
             "bot_message": bot_message,
         }, status=201)
     
+def generate_response_gpt3(user_message):
+    api_key = settings.OPENAI_API_KEY
+    model = "gpt-3.5-turbo"
+    client = OpenAI(api_key=api_key)
+    
+    completion = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are an Arabic teaching assistant."},
+            {"role": "user", "content": f"{user_message}"}
+        ]
+    )
+
+    reply = completion.choices[0].message.content
+    return reply
+
 @login_required
 def save_lesson_progress(request):
     # Saving a new message must be via POST
@@ -184,7 +226,7 @@ def save_lesson_progress(request):
 
             current_level = Level.objects.get(letter=user_level)
             user_profile.current_level = current_level
-            
+
             current_lesson = Lesson.objects.get(level=current_level, number=user_lesson)
             user_profile.current_lesson = current_lesson
 
