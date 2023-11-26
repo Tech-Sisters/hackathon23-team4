@@ -477,6 +477,11 @@ function initializeChat() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    const sendButton = document.querySelector('#sendButton');
+    sendButton.addEventListener('click', async function () {
+        await processUserInput();
+    });
+
     userInput.addEventListener('keyup', async event => {
         if (event.key === 'Enter') {
             await processUserInput();
