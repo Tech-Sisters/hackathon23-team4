@@ -13,7 +13,8 @@
     var activity_name = "{{ activity_name }}";
     var activity_number = parseInt("{{ activity_number }}");
     var messages = {{ messages|safe }};
-    var lesson = "{{ lesson }}";
+    var user_level = "{{ user_level }}";
+    var user_lesson = parseInt("{{ user_lesson }}");
 </script>
 <script src="{% static 'chatbot/chatbot.js' %}"></script>
 {% endblock %}
@@ -23,11 +24,12 @@
 <div class="main-container">
     <div class="sidebar">
         <h1>Welcome to Iqra.ai</h1>
-        <br>
-        <h2>Lesson {{ lesson }}</h1>
-        <h3>{{ activity_name }}</h2>
         <hr>
-        <h4>My Queue<h4>
+        <h2>Level {{ user_level }}</h2>
+        <h3>Lesson {{ user_lesson }}</h3>
+        <h4>{{ activity_name }}</h4>
+        <hr>
+        <h5>My Queue</h5>
         <ol>
             {% for word in lesson_words %}
             <li>{{ word }}</li>
