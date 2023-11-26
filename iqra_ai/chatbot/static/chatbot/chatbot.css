@@ -45,28 +45,6 @@ body {
     position: relative;
 }
 
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #128C7E;
-    color: #fff;
-    text-align: center;
-    width: 100%;
-}
-
-.profile-button {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-.dropdown-menu {
-    right: 0;
-    left: auto;
-}
-
 .chat-header {
     background-color: #128C7E;
     color: #fff;

@@ -1,0 +1,15 @@
+.logo {
+    width: 100px; /* Set the maximum width */
+    height: auto; /* Maintain the aspect ratio */
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #128C7E;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+}
