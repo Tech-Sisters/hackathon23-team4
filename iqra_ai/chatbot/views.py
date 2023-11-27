@@ -67,23 +67,22 @@ def get_user_context(user):
     activity_name = ''.join(char for char in activity_name_num if char.isalpha() or char.isspace())
     activity_number = 0
 
-    message_content_list = []
-    
+    messages_with_sender = []
+
     if activity in ["ps", "st"]:
         activity_number = int(user_progress[2])
         if activity == "ps" and activity_number>=1:
             activity_word = get_current_word(user)
-            messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word).order_by('creation')
-            message_content_list = list(messages.values_list('content', flat=True))
-
-
+            messages = Message.objects.filter(chat_user=user, practice_session_word=activity_word, message_type="ps").order_by('creation')
+            for message_obj in messages:
+                messages_with_sender.append([message_obj.content,message_obj.sender])
     
     context = {
         "lesson_words": lesson_words,
         "activity": activity,
         "activity_name": activity_name,
         "activity_number": activity_number,
-        "messages": message_content_list,
+        "messages": messages_with_sender,
         "user_level": user_level,
         "user_lesson": user_lesson,
     }
@@ -106,6 +105,16 @@ def index(request):
     else:
         return render(request, "chatbot/index.html")
        
+def get_lesson_words(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "GET request required."}, status=400)
+    
+    user_profile = UserProfile.objects.get(user=request.user)
+    lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
+    print(lesson_words)
+
+    return JsonResponse({"new_lesson_words":lesson_words}, status=201)
+
 # Save Messages sent by user
 @login_required
 def save_message(request):
@@ -118,6 +127,7 @@ def save_message(request):
     data = json.loads(request.body)
     message = data.get("message")
     sender = data.get("sender")
+    message_type = data.get("message_type")
     print("MESSAGE:",message)
     if message == "":
         return JsonResponse({
@@ -126,7 +136,8 @@ def save_message(request):
     else:
         practice_session_word = get_current_word(user=request.user)
         with transaction.atomic():
-            message_object = Message(chat_user=request.user, content=message, sender=sender, message_type="lesson")
+
+            message_object = Message(chat_user=request.user, content=message, sender=sender, message_type=message_type)
             message_object.save()
             message_object.practice_session_word.add(practice_session_word)
 
@@ -151,37 +162,38 @@ def create_bot_response(request):
         }, status=400)
     
     else:
-        practice_session_word = get_current_word(user=request.user)
+        activity_word = get_current_word(user=request.user)
+        bot_message = f"Your word is {activity_word} (command: {command})"
 
         if command=="practice_session":
-            prompt = f'Send a simple sentence using "{practice_session_word}". Do not send anything except the sentence in Arabic'
+            prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
             # prompt = "invalid_command"
 
         elif command=="sentence_test":
-            prompt = f'Send a simple sentence using "{practice_session_word}". Do not send anything except the sentence in Arabic'
+            prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
+            # prompt = "invalid_command"
 
         elif command == "correct_translation":
-            # sentence_test_message = Message.objects.get(chat_user=request.user, sender="bot", message_type="lesson",practice_session_word=practice_session_word)
-            # sentence_test = sentence_test_message.content
             sentence_test = data.get("sentenceTest")
             prompt = f'If the translation of "{sentence_test}" is "{user_message}", send "correct" else send "wrong"'
             # prompt = "invalid_command"
+            # bot_message = "correct"
 
         elif command == "translate_word":
             prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
+            # prompt = "invalid_command"
 
         else:
             prompt = "invalid_command"
-        
+
         print(prompt)
+        
+        # bot_message = f"Your word is {activity_word} (command: {command})"
         if prompt != "invalid_command":
             try:
                 bot_message = generate_response_gpt3(prompt)
             except Exception as e:
                 print(e)
-                bot_message = f"Your word is {practice_session_word} (command: {command})"
-        else:
-            bot_message = f"Your word is {practice_session_word} (command: {command})"
         
         return JsonResponse({
             "bot_message": bot_message,
@@ -221,14 +233,24 @@ def save_lesson_progress(request):
         }, status=400)
     else:
         with transaction.atomic():
+            # Update user lesson progress
             user_profile = UserProfile.objects.get(user=request.user)
             user_profile.lesson_progress = lesson_progress
 
+            # Update user level
             current_level = Level.objects.get(letter=user_level)
             user_profile.current_level = current_level
 
+            # Update user lesson
             current_lesson = Lesson.objects.get(level=current_level, number=user_lesson)
             user_profile.current_lesson = current_lesson
+
+            # Add old queue words to vocab
+            user_profile.my_vocab.add(*user_profile.my_queue.all())
+
+            # Add new lesson words to queue
+            lesson_words = current_lesson.words.all()
+            user_profile.my_queue.set(lesson_words)
 
             user_profile.save()
 

@@ -11,22 +11,23 @@ function initializeChat() {
     const userInput = document.getElementById('userInput');
 
     // letIABLES FROM HTML:
-    // lesson_words - What are the words in the current lesson? (to display in the sidebar)
     // activity - Is it a practice session (ps), a sentence test (st), a verse test (vt) or a tafseer (t)
     // activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
     // activity_number - If the activity is a ps/st, then which word are we on?
     // messages - If it is a practice session, what messages have been sent? (to recreate practice session chat)
     // user_level - Which level is the user on? (eg: "A")
     // user_lesson - Which lesson is the user on? (eg: 1)
+    let lessonWords = [];
     let messageCounter = 0;
     let sentenceTestTries = 0;
     let verseTestTries = 0;
     let currentTest = "";
-    let currentVerseTest
 
-    begin();
+    
+    lessonWords = getLessonWords().then(() => begin());
 
-    function begin() {
+    async function begin() {
+        // console.log(lessonWords)
         console.log("begin ",activity+activity_number);
 
         if (activity === "ps") {
@@ -35,10 +36,12 @@ function initializeChat() {
             } else {
                 messages_num = messages.length;
                 for (let i=0; i<messages_num; i++) {
-                    if (i%2==0) {
-                        addUserMessage(messages[i]);
+                    if (messages[i][1]=="user") {
+                        addUserMessage(messages[i][0]);
+                    } else if (messages[i][1]=="bot"){
+                        addBotMessage(messages[i][0]);
                     } else {
-                        addBotMessage(messages[i]);
+                        console.log("Uknown message sender:",messages[i][1])
                     }
                 }
             }
@@ -64,11 +67,12 @@ function initializeChat() {
     async function startSentenceTestWord() {
         const sentenceTestIndex = activity_number-1
         if (sentenceTestIndex < 5) {
-            const sentenceTestWord = lesson_words[sentenceTestIndex];
+            console.log(lessonWords)
+            const sentenceTestWord = lessonWords[sentenceTestIndex];
             currentTest = await get_bot_response(sentenceTestWord, "sentence_test", currentTest)
             const botMessage = `Translate: "${currentTest}"`; 
             addBotMessage(botMessage);
-            await sendMessageToBackend(botMessage, "bot");
+            await sendMessageToBackend(botMessage);
             // Add logic to handle user response and check correctness (not implemented in this example)
             // After handling user response, move on to the next word
         } else {
@@ -86,7 +90,7 @@ function initializeChat() {
             currentTest = verseToTranslate
             const botMessage = `Translate the verse: "${verseToTranslate}"`;
             addBotMessage(botMessage);
-            await sendMessageToBackend(botMessage, "bot");
+            await sendMessageToBackend(botMessage);
 
         } else {
             // Move on to the next phase (e.g., another activity)
@@ -120,7 +124,7 @@ function initializeChat() {
         `For detailed tafsir of these verses, visit https://quran.com/97:1/tafsirs/en-tafsir-maarif-ul-quran`];
         for (i=0; i<botMessages.length; i++) {
             addBotMessage(botMessages[i]);
-            await sendMessageToBackend(botMessages[i], "bot");
+            await sendMessageToBackend(botMessages[i]);
         }
         startNextLevel();
     }   
@@ -135,8 +139,8 @@ function initializeChat() {
         let next_level = getNextLetter(user_level);
 
         startButton.addEventListener('click', async function() {
-            await sendProgressToBackend('ps0',1,next_level).then(() => {
-                updateLocalLessonLevel(1,next_level);
+            await sendProgressToBackend(lesson_progress='ps0',currentLesson=1,currentLevel=next_level).then(() => {
+                updateLocalLevelLesson(next_level, 1);
                 begin();
             })
         });
@@ -156,6 +160,8 @@ function initializeChat() {
             
             startSessionContainer.style.display = 'none'; // hide the start session button
             chatInput.style.display = 'flex'; // show the input field
+
+            chatMessages.innerHTML = ''; // Clear all messages from the chatbox
 
             if (['ps','st'].includes(activity)) {
                 let lesson_progress = activity + '1';
@@ -253,7 +259,8 @@ function initializeChat() {
             addUserMessage(userMessage);
 
             // Send user message to the Django backend
-            await sendMessageToBackend(userMessage)
+            let message_type = activity=="ps" ? "ps" : "normal"
+            await sendMessageToBackend(userMessage, sender="user", message_type=message_type)
             userInput.value = '';
 
             let lesson_progress;
@@ -261,12 +268,12 @@ function initializeChat() {
             if (activity==="ps") {
                 if (messageCounter < 1) {
                     const botMessage = await get_bot_response(userMessage, "practice_session");
-                    await sendMessageToBackend(botMessage, "bot");
+                    await sendMessageToBackend(botMessage, sender="bot", message_type="ps");
                     addBotMessage(botMessage);
                 } else {
                     console.log('20 MESSAGES DONE');
                     const botMessage = await get_bot_response(userMessage, "practice_session");
-                    await sendMessageToBackend(botMessage, "bot");
+                    await sendMessageToBackend(botMessage, sender="bot", message_type="ps");
                     addBotMessage(botMessage);
                     
                     console.log(activity+activity_number,"done")
@@ -291,6 +298,7 @@ function initializeChat() {
                     botMessage = "That is the right translation!";
 
                     lesson_progress = 'st' + (activity_number+1);
+                    let currentLesson = user_lesson
 
                     if (lesson_progress === 'st6') {
 
@@ -302,10 +310,13 @@ function initializeChat() {
                         } else {
                             // User has completed sentence test of lesson 1 and is going to start lesson 2
                             lesson_progress = 'ps0';
-                            updateLocalLessonLevel(user_lesson+1,user_level);
+                            currentLesson = user_lesson+1;
+                            const newLessonWords = await getLessonWords(user_level, currentLesson)
+                            updateLocalLevelLesson(level=user_level, lesson=currentLesson, newLessonWords);
+                            
                         }
                     }
-                    await sendProgressToBackend(lesson_progress)
+                    await sendProgressToBackend(lesson_progress=lesson_progress, currentLesson=currentLesson)
 
                 } else if (sentenceTestTries < 2) {
                     botMessage = "That's not right, try again!";
@@ -316,7 +327,7 @@ function initializeChat() {
                     lesson_progress = 'ps0';
                     await sendProgressToBackend(lesson_progress);
                 }
-                await sendMessageToBackend(botMessage, "bot");
+                await sendMessageToBackend(botMessage);
                 addBotMessage(botMessage);
                 if (activity=='st') {
                     startSentenceTestWord();
@@ -343,7 +354,7 @@ function initializeChat() {
                     lesson_progress = 't';
                     await sendProgressToBackend(lesson_progress);
                 }
-                await sendMessageToBackend(botMessage, "bot");
+                await sendMessageToBackend(botMessage);
                 addBotMessage(botMessage);
 
                 if (activity=='vt') {
@@ -359,12 +370,13 @@ function initializeChat() {
         }
     }
     
-    async function sendMessageToBackend(message, sender="user") {
+    async function sendMessageToBackend(message, sender="bot", message_type="normal") {
         const url = "/save_message";
         const method = "POST";
         const body = {
             message: message,
             sender: sender,
+            message_type: message_type,
         };
         try {
             const data = await makeRequest(url, method, body);
@@ -439,6 +451,26 @@ function initializeChat() {
         }
     }
 
+    async function getLessonWords() {
+        // Using the Fetch API to send a GET request
+        try {
+            const response = await fetch("/get_lesson_words", options = {
+                method: "GET",
+                headers: {
+                    'X-CSRFToken': csrf_token,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return await response.json().new_lesson_words;
+        } catch (error) {
+            console.error('Error during fetch operation:', error);
+            // Re-throw the error to propagate it to the next .catch block
+            throw error;
+        }
+    }
+
     function updateLocalProgress(lesson_progress) {
         activity = lesson_progress.slice(0,2);
         activity_obj = {
@@ -455,9 +487,12 @@ function initializeChat() {
         }
     }
 
-    function updateLocalLessonLevel(lesson, level) {
-        user_lesson = lesson;
+    function updateLocalLevelLesson(level, lesson, newLessonWords=false) {
         user_level = level;
+        user_lesson = lesson;
+        if (newLessonWords) {
+            lessonWords=newLessonWords
+        };
     }
 
     function getNextLetter(letter) {
