@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -322,7 +322,6 @@ def register(request):
 
         # Log in the user
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
 
         # Redirect to the instructions page
         return redirect("instructions")

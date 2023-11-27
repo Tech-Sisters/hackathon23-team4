@@ -368,6 +368,13 @@ function initializeChat() {
         };
         try {
             const data = await makeRequest(url, method, body);
+
+            // Check if the registration was successful
+        if (data.registrationSuccess) {
+            // Redirect to the instructions page
+            window.location.href = "/instructions";
+        }
+
             console.log('POST response:', data);
         } catch (error) {
             console.error('Error:', error);
