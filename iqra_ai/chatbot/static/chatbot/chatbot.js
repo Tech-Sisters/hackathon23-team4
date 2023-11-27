@@ -142,6 +142,8 @@ function initializeChat() {
             await sendProgressToBackend(lesson_progress='ps0',currentLesson=1,currentLevel=next_level).then(async () => {
                 const newLessonWords = await getLessonWords()
                 updateLocalLevelLesson(next_level, 1, newLessonWords);
+
+                chatMessages.innerHTML = '';
                 begin();
             })
         });
@@ -202,15 +204,20 @@ function initializeChat() {
         scrollToBottom();
     }
 
+    function updateActivityName(p_activity_name) {
+        const activity_name_heading = document.getElementById("activity_name");
+        activity_name_heading.innerHTML = p_activity_name;
+    }
+
     function updateSidebarInfo(lesson, level, p_activity_name, p_lesson_words) {
         const user_level_heading = document.getElementById("user_level");
         const user_lesson_heading = document.getElementById("user_lesson");
-        const activity_name_heading = document.getElementById("activity_name");
         const lesson_words_list = document.getElementById("lesson_words_list");
 
         user_level_heading.innerHTML = level;
         user_lesson_heading.innerHTML = lesson;
-        activity_name_heading.innerHTML = p_activity_name;
+
+        updateActivityName(p_activity_name);
 
         lesson_words_list.innerHTML = '';
         p_lesson_words.forEach(word => {
@@ -507,6 +514,7 @@ function initializeChat() {
         } else {
             activity_number = 0;
         }
+        updateActivityName(activity_name);
     }
 
     function updateLocalLevelLesson(level, lesson, newLessonWords) {
