@@ -86,7 +86,7 @@ function initializeChat() {
         const verseTestIndex = activity_number - 1;
     
         if (verseTestIndex < 5) {
-            const verseToTranslate = "وَإِنْ كُنْتُمْ فِي رَيْبٍ مِمَّا نَزَّلْنَا عَلَىٰ عَبْدِنَا فَأْتُوا بِسُورَةٍ مِنْ مِثْلِهِ" //replace with call to verses file
+            const verseToTranslate = "لَيْلَةُ ٱلْقَدْرِ خَيْرٌۭ مِّنْ أَلْفِ شَهْرٍۢ" //replace with call to verses file
             currentTest = verseToTranslate
             const botMessage = `Translate the verse: "${verseToTranslate}"`;
             addBotMessage(botMessage);
@@ -126,10 +126,10 @@ function initializeChat() {
             addBotMessage(botMessages[i]);
             await sendMessageToBackend(botMessages[i]);
         }
-        startNextLevel();
+        await startNextLevel();
     }   
 
-    function startNextLevel() {
+    async function startNextLevel() {
         chatInput.style.display = 'none'; // hide the input field
         const startButton = createButtonElement('Start next level');
 
@@ -139,8 +139,9 @@ function initializeChat() {
         let next_level = getNextLetter(user_level);
 
         startButton.addEventListener('click', async function() {
-            await sendProgressToBackend(lesson_progress='ps0',currentLesson=1,currentLevel=next_level).then(() => {
-                updateLocalLevelLesson(next_level, 1);
+            await sendProgressToBackend(lesson_progress='ps0',currentLesson=1,currentLevel=next_level).then(async () => {
+                const newLessonWords = await getLessonWords()
+                updateLocalLevelLesson(next_level, 1, newLessonWords);
                 begin();
             })
         });
@@ -199,6 +200,24 @@ function initializeChat() {
         const assistantMessage = createMessageElement(message, 'assistant-message', true);
         chatMessages.appendChild(assistantMessage);
         scrollToBottom();
+    }
+
+    function updateSidebarInfo(lesson, level, p_activity_name, p_lesson_words) {
+        const user_level_heading = document.getElementById("user_level");
+        const user_lesson_heading = document.getElementById("user_lesson");
+        const activity_name_heading = document.getElementById("activity_name");
+        const lesson_words_list = document.getElementById("lesson_words_list");
+
+        user_level_heading.innerHTML = level;
+        user_lesson_heading.innerHTML = lesson;
+        activity_name_heading.innerHTML = p_activity_name;
+
+        lesson_words_list.innerHTML = '';
+        p_lesson_words.forEach(word => {
+            const li = document.createElement('li');
+            li.textContent = word;
+            lesson_words_list.appendChild(li);
+        });
     }
 
     function createMessageElement(message, className, isAssistant = false) {
@@ -311,9 +330,9 @@ function initializeChat() {
                             // User has completed sentence test of lesson 1 and is going to start lesson 2
                             lesson_progress = 'ps0';
                             currentLesson = user_lesson+1;
-                            const newLessonWords = await getLessonWords(user_level, currentLesson)
+                            let newLessonWords = await getLessonWords()
                             updateLocalLevelLesson(level=user_level, lesson=currentLesson, newLessonWords);
-                            
+
                         }
                     }
                     await sendProgressToBackend(lesson_progress=lesson_progress, currentLesson=currentLesson)
@@ -463,7 +482,10 @@ function initializeChat() {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            return await response.json().new_lesson_words;
+            const responseData = await response.json();
+            const newLessonWords = responseData.new_lesson_words;
+
+            return newLessonWords
         } catch (error) {
             console.error('Error during fetch operation:', error);
             // Re-throw the error to propagate it to the next .catch block
@@ -487,12 +509,11 @@ function initializeChat() {
         }
     }
 
-    function updateLocalLevelLesson(level, lesson, newLessonWords=false) {
+    function updateLocalLevelLesson(level, lesson, newLessonWords) {
         user_level = level;
         user_lesson = lesson;
-        if (newLessonWords) {
-            lessonWords=newLessonWords
-        };
+        lessonWords = newLessonWords
+        updateSidebarInfo(lesson, level, activity_name, newLessonWords)
     }
 
     function getNextLetter(letter) {
