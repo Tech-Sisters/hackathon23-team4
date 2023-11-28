@@ -112,7 +112,7 @@ def get_lesson_words(request):
     
     user_profile = UserProfile.objects.get(user=request.user)
     lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
-    print(lesson_words)
+    print("lesson words:",lesson_words)
 
     return JsonResponse({"new_lesson_words":lesson_words}, status=201)
 
@@ -168,33 +168,38 @@ def create_bot_response(request):
 
         if command=="practice_session":
             prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
-            # prompt = "invalid_command"
 
         elif command=="sentence_test":
             prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
-            # prompt = "invalid_command"
 
         elif command == "correct_translation":
             sentence_test = data.get("sentenceTest")
             prompt = f'If the translation of "{sentence_test}" is "{user_message}", send "correct" else send "wrong"'
-            # prompt = "invalid_command"
-            # bot_message = "correct"
+
+            # FOR TESTING PURPOSES
+            bot_message = "correct"
 
         elif command == "translate_word":
             prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
-            # prompt = "invalid_command"
 
         else:
             prompt = "invalid_command"
 
         print(prompt)
         
+        # FOR TESTING PURPOSES
+        prompt = "invalid_command"
+
         # bot_message = f"Your word is {activity_word} (command: {command})"
         if prompt != "invalid_command":
             try:
                 bot_message = generate_response_gpt3(prompt)
             except Exception as e:
                 print(e)
+
+        # TESTING
+        if command == "correct_translation":
+            bot_message = "correct"
         
         return JsonResponse({
             "bot_message": bot_message,
