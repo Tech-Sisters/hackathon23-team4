@@ -1,16 +1,17 @@
 {% extends "chatbot/layout.html" %}
 {% load static %}
 
-{% block head %}
+{% block static %}
+    {{ block.super }}
     <link rel="stylesheet" href="{% static 'chatbot/index.css' %}" type="text/css">
 {% endblock %}
 
 {% block body %}
     <div class="text-center my-4">
         <h1>Welcome to Iqra.ai</h1>
-        <img src="{% static 'landing-logo.png' %}" alt="Iqra.ai Logo" class="img-fluid my-4" style="max-width: 400px;">
+        <img class="landing-page-img" src="{% static 'landing-logo.png' %}" alt="Iqra.ai Logo" class="img-fluid">
         <div>
-            <a class="btn btn-secondary btn-lg btn-style" href="{% url 'register' %}" role="button">Get Started</a>
+            <a class="btn-style" href="{% url 'register' %}" role="button">Get Started</a>
         </div>
     </div>
 {% endblock %}

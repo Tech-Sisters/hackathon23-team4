@@ -4,6 +4,13 @@
     padding: 15px 30px; /* Adjust padding to increase button size */
     border-radius: 5px;
     font-size: 18px;
-    margin-top: 20px;
     cursor: pointer;
+    text-decoration: none;
+}
+
+.landing-page-img {
+    max-width: 300px;
+    margin-bottom: 40px;
+    position: relative;
+    right: 10px;
 }
