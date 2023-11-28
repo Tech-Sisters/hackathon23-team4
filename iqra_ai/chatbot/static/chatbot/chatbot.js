@@ -331,7 +331,7 @@ function initializeChat() {
             if (activity==="ps") {
 
                 // User has yet to send messages to finish practice session
-                if (messageCounter < 1) {
+                if (messageCounter < 10) {
                     const botMessage = await get_bot_response(userMessage, "practice_session");
                     await sendMessageToBackend(botMessage, "bot", "ps");
                     addBotMessage(botMessage);

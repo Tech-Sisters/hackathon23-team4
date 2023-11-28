@@ -168,7 +168,6 @@ def create_bot_response(request):
     data = json.loads(request.body)
     user_message = data.get("userMessage")
     command = data.get("command")
-    print("user_message:",user_message)
     if user_message == "":
         return JsonResponse({
             "error": "No prompt found!"
@@ -193,18 +192,16 @@ def create_bot_response(request):
             api_key2 = True
 
             # FOR TESTING PURPOSES
-            bot_message = "correct"
+            # bot_message = "correct"
 
         elif command == "translate_word":
             prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
             api_key2 = True
         else:
             prompt = "invalid_command"
-
-        print(prompt)
         
         # FOR TESTING PURPOSES
-        prompt = "invalid_command"
+        # prompt = "invalid_command"
 
         if prompt != "invalid_command":
             try:
@@ -283,7 +280,6 @@ def get_user_context(user):
         "user_lesson": user_lesson,
     }
 
-    # print(context)
 
     return context
 
@@ -317,7 +313,6 @@ def get_lesson_words(request):
     
     user_profile = UserProfile.objects.get(user=request.user)
     lesson_words = list(user_profile.my_queue.values_list('word', flat=True))
-    print("lesson words:",lesson_words)
 
     return JsonResponse({"new_lesson_words":lesson_words}, status=201)
 
@@ -337,7 +332,7 @@ def save_message(request):
     message = data.get("message")
     sender = data.get("sender")
     message_type = data.get("message_type")
-    print("MESSAGE:",message)
+
     if message == "":
         return JsonResponse({
             "error": "No message found!"
@@ -369,7 +364,7 @@ def save_lesson_progress(request):
     lesson_progress = data.get("lesson_progress")
     user_lesson = data.get("user_lesson")
     user_level = data.get("user_level")
-    print("lesson_progress:",lesson_progress)
+    
     if lesson_progress == "" or user_lesson== "":
         return JsonResponse({
             "error": "No lesson_progress/user_lesson found!"
