@@ -162,15 +162,17 @@ def create_bot_response(request):
         }, status=400)
     
     else:
-        activity_word = get_current_word(user=request.user)
+        activity_word_obj = get_current_word(user=request.user)
+        activity_word = activity_word_obj.word
+
         bot_message = f"Your word is {activity_word} (command: {command})"
         api_key2 = False
 
         if command=="practice_session":
-            prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
+            prompt = f'You are an Arabic teacher chatbot testing a basic Arabic learner. Send a simple and straightforward sentence using "{activity_word}" in it. Do not send anything except the sentence in Arabic'
 
         elif command=="sentence_test":
-            prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
+            prompt = f'You are an Arabic teacher chatbot testing a basic Arabic learner. Send a simple and straightforward sentence using "{activity_word}" in it. Do not send anything except the sentence in Arabic'
 
         elif command == "correct_translation":
             sentence_test = data.get("sentenceTest")
@@ -183,7 +185,6 @@ def create_bot_response(request):
         elif command == "translate_word":
             prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
             api_key2 = True
-            
         else:
             prompt = "invalid_command"
 
@@ -197,16 +198,12 @@ def create_bot_response(request):
                 bot_message = generate_response_gpt3(prompt, api_key2)
             except Exception as e:
                 print(e)
-
-        # TESTING
-        # if command == "correct_translation":
-        #     bot_message = "correct"
         
         return JsonResponse({
             "bot_message": bot_message,
         }, status=201)
     
-def generate_response_gpt3(user_message, use_key2=False):
+def generate_response_gpt3(prompt, use_key2=False):
     api_key = settings.OPENAI_API_KEY
     api_key_2 = settings.OPENAI_API_KEY_2
     model = "gpt-3.5-turbo"
@@ -215,12 +212,11 @@ def generate_response_gpt3(user_message, use_key2=False):
         client = OpenAI(api_key=api_key_2)
     
     
+    messages = [{"role": "system", "content": prompt},]
+    
     completion = client.chat.completions.create(
         model=model,
-        messages=[
-            {"role": "system", "content": "You are an Arabic teaching assistant."},
-            {"role": "user", "content": f"{user_message}"}
-        ]
+        messages=messages,
     )
 
     reply = completion.choices[0].message.content
@@ -362,4 +358,3 @@ def register(request):
     else:
         # Display the registration form
         return render(request, "chatbot/register.html")
-    
