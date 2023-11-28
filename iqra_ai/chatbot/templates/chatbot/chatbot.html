@@ -22,23 +22,23 @@
 
 <div class="main-container">
     <div class="sidebar">
-        <h1>Welcome to Iqra.ai</h1>
+        <h1>IQRA.ai</h1>
+        <h4>Level <span id="user_level">{{ user_level }}</span></h4>
+        <h4>Lesson <span id="user_lesson">{{ user_lesson }}</span></h4>
         <hr>
-        <h2>Level <span id="user_level">{{ user_level }}</span></h2>
-        <h3>Lesson <span id="user_lesson">{{ user_lesson }}</span></h3>
-        <h4 id="activity_name">{{ activity_name }}</h4>
-        <hr>
+        <p>Note: Please wait 2-3 seconds for the bot to respond!</p>
         <h5>My Current Lesson Words</h5>
-        <ol>
+        <ol id="lesson_words_list">
             {% for word in lesson_words %}
             <li>{{ word }}</li>
             {% endfor %}
         </ol>
+        <p>Hint: Click on any Arabic word from the chatbot 👀</p>
     </div>
 
     <div class="chat-section">
         <div class="chat-container">
-            <div class="chat-header">Chat with Iqra</div>
+            <div class="chat-header" id="activity_name">{{ activity_name }}</div>
             <div class="chat-messages">
                 <!-- Messages will be dynamically added here -->
             </div>
