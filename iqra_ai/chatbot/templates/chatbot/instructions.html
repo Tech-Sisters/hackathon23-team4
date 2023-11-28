@@ -8,26 +8,48 @@
 
 {% block body %}
 
-<!-- Sidebar -->
-<div class="sidenav">
-        <div>
-            <h2>Welcome to Iqra.ai!</h2>
-        </div>
+<div class="title">
+    <h1>Welcome to IQRA.ai, {{ username }}!</h1>
 </div>
 
 <!-- Main Content Area -->
-<div class="main">
+<div class="instructions-container">
+    <!-- Container 1: Instructions -->
     <!-- Add your instructions bubble here -->
     <div class="instructions-bubble">
-        <p>Follow these instructions to use the chatbot:</p>
-        <ul>
-            <li>Step 1: ...</li>
-            <li>Step 2: ...</li>
-            <li>Step 3: ...</li>
-            <!-- Add more steps as needed -->
-        </ul>
+        <h2>Instructions</h2>
+        <h4> Here is how IQRA.ai works!</h4>
+        <p>You will have 4 lessons in this level, each lesson consists of 5 words. Familiarize yourself with these words in your practice sessions.</p>
+        <p>After your practice sessions, for all 5 words, proceed to the test section. You will be given 5 sentences to translate, each including the word you are learning.</p>
+        <p>This process will be repeated for each of the 4 lessons, so at the end of the lessons, you will be familiar with 20 words in total.</p>
+        <p>You can go back and review the words in the practice sessions as many times as you like!</p>
+        <p>Then, move on to the next test, where you will translate a verse that includes all the words you have learned. Once you have translated this correctly, congratulations! You can unlock the tafseer and move on to Level B, Lesson 1!</p>
+        
+        <h3>Overview of the Lessons and Levels:</h3>
+        <div class="overview">
+           <p>Level A consists of 4 lessons: A1, A2, A3, A4</p>
+            <p>Level B consists of 4 lessons: B1, B2, B3, B4</p>
+            <p>Level C consists of 4 lessons: C1, C2, C3, C4</p>
+            <div class="dot">
+                <p>.</p>
+                <p>.</p>
+                <p>.</p>
+            </div>
+            <p>Level Y consists of 4 lessons: Y1, Y2, Y3, Y4</p> 
+        </div>
+    </div>
+
+
+    <!-- Container 2: Image -->
+    <div class="instructions-bubble lessons-image">
+        <h2>Your First level: Level A</h2>
+        <!-- Add your image here -->
+        <img src="{% static 'Level_A.png' %}" alt="Lesson">
+        <div class="lets-start">
+            <h4>Let's start!</h4>
         <!-- Start Lesson Button -->
         <a href="{% url 'index' %}" class="start-lesson-btn">Start Lesson</a>
-    </div>
+        </div>
+    </div
 </div>
 {% endblock %}

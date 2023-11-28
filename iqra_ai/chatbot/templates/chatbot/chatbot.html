@@ -28,14 +28,12 @@
         <h3>Lesson <span id="user_lesson">{{ user_lesson }}</span></h3>
         <h4 id="activity_name">{{ activity_name }}</h4>
         <hr>
-        <h5>My Queue</h5>
-        <ol id="lesson_words_list">
+        <h5>My Current Lesson Words</h5>
+        <ol>
             {% for word in lesson_words %}
             <li>{{ word }}</li>
             {% endfor %}
         </ol>
-        
-        <a class="btn btn-primary" href="{% url 'logout' %}" role="button">Log out</a>
     </div>
 
     <div class="chat-section">

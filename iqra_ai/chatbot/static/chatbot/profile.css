@@ -1,72 +1,85 @@
 /* profile.css */
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
     margin: 0;
-    padding: 0;
-    background-color: #f0f0f0;  /* Background color for the profile page */
 }
 
-.navbar {
-    background-color: #128C7E;  /* Navbar background color */
-    color: #fff;
-    padding: 10px;
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.profile-bubble {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 10px;
+    max-width: 500px;
+    width: 100%;
     text-align: center;
 }
 
-.profile-button {
-    margin-right: 10px;  /* Adjust the margin as needed */
+/* Style for the User Information container */
+.profile-bubble.user-info {
+    /* No background color for the entire container */
+    padding: 20px; /* Add some padding for better appearance */
+    border-radius: 10px; /* Add rounded corners for a bubble-like appearance */
+    margin-bottom: 20px; /* Add margin to separate it from other containers */
+    display: grid; /* Use grid layout */
+    gap: 10px; /* Add some gap between rows */
+    grid-template-columns: max-content auto; /* Two columns, first is as wide as the content, second takes the remaining space */
+    display: grid; /* Use grid layout */
+    gap: 10px; /* Add some gap between rows */
+    grid-template-columns: max-content auto; /* Two columns, first is as wide as the content, second takes the remaining space */
+    justify-content: center; /* Center the grid horizontally */
+    align-items: center; /* Center the grid vertically */
+    text-align: left; /* Align text to the left within each grid item */
 }
 
-.profile-button button {
-    background-color: #128C7E;  /* Profile button background color */
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+/* Style for the headings (Email, Level, Current Lesson) */
+.profile-bubble h3 {
+    color: #555; /* Dark grey color for the headings */
+    grid-column: span 2; /* Span the entire width of the grid */
+}
+.profile-bubble.my-words h3 {
+    color: #05605aff; /* Dark grey color for the headings */
+    grid-column: span 2; /* Span the entire width of the grid */
 }
 
-.profile-button button:hover {
-    background-color: #0d6e5a;  /* Adjust the color on hover as needed */
+/* Style for the labels (Email:, Level:, Current Lesson:) */
+.profile-bubble.user-info .info-row p.label {
+    color: #777; /* Slightly lighter grey color for the labels */
+    grid-column: 1; /* First column */
+    margin: 0; /* Remove default margin */
 }
 
-.dropdown-menu {
-    background-color: #fff;  /* Dropdown menu background color */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+/* Style for the information (actual data) */
+.profile-bubble.user-info .info-row p.data {
+    color: #000; /* Black color for the information */
+    grid-column: 2; /* Second column */
+    margin: 0; /* Remove default margin */
 }
 
-.dropdown-item {
-    color: #333;  /* Dropdown item text color */
+.profile-bubble.my-words ul {
+    list-style-type: none; /* Remove default list styles */
+    padding: 0; /* Remove default padding */
+    text-align: center; /* Center text within the list */
 }
 
-.dropdown-item:hover {
-    background-color: #f0f0f0;  /* Adjust the color on hover as needed */
+/* Style for each list item in My Queue Words */
+.profile-bubble.my-words ul li {
+    display: inline-block; /* Display list items horizontally */
+    margin: 0 10px; /* Add some margin between list items */
+}    
+
+.lessons-image img {
+    max-width: 100%;
+    height: auto;
 }
 
-.container {
-    max-width: 800px;
-    margin: 20px auto;
-    background-color: #fff;  /* Container background color */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    border-radius: 8px;
-}
-
-h1 {
-    color: #128C7E;  /* Heading color */
-}
-
-p {
-    color: #333;  /* Text color */
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-ul li {
-    margin-bottom: 10px;
-    color: #555;  /* List item text color */
-}
