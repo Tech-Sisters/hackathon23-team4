@@ -12,7 +12,8 @@ from django.conf import settings
 from .models import User, UserProfile, Word, Lesson, Level, Message
 
 def instructions(request):
-    return render(request, "chatbot/instructions.html")
+    username = request.user.username
+    return render(request, "chatbot/instructions.html", context={'username': username})
 
 def profile(request):
     user_profile = UserProfile.objects.get(user=request.user)

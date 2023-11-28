@@ -1,0 +1,9 @@
+.btn-style {
+    background-color: #05605a;
+    color: #05605a;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 18px;
+    margin-top: 20px;
+    cursor: pointer;
+}
