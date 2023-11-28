@@ -80,19 +80,19 @@
                     <!-- Non-authenticated user -->
                     {% if request.path == '/register/' %}
                         <!-- Register page -->
-                        <a class="btn btn-primary" href="{% url 'login' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
+                        <a class="btn btn-secondary" href="{% url 'login' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
                             <i class="fa fa-sign-in-alt"></i> Login
                             <span class="visually-hidden">Login</span>
                         </a>
                     {% elif request.path == '/login/' %}
                         <!-- Login page -->
-                        <a class="btn btn-primary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
+                        <a class="btn btn-secondary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
                             <i class="fa fa-user-plus"></i> Register
                             <span class="visually-hidden">Register</span>
                         </a>
                     {% else %}
                         <!-- Landing page (default) -->
-                        <a class="btn btn-primary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
+                        <a class="btn btn-secondary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
                             <i class="fa fa-user-plus"></i> Register
                             <span class="visually-hidden">Register</span>
                         </a>
