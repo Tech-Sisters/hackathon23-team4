@@ -313,7 +313,7 @@ function initializeChat() {
             let lesson_progress;
 
             if (activity==="ps") {
-                if (messageCounter < 1) {
+                if (messageCounter < 10) {
                     const botMessage = await get_bot_response(userMessage, "practice_session");
                     await sendMessageToBackend(botMessage, "bot", "ps");
                     addBotMessage(botMessage);

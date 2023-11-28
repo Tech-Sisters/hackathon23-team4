@@ -30,6 +30,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 DEBUG = os.environ['DEBUG']
 
 OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
+OPENAI_API_KEY_2 = os.environ['OPENAI_API_KEY_2']
 
 ALLOWED_HOSTS = []
 

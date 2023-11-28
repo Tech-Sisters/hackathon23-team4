@@ -9,7 +9,7 @@ import json
 from openai import OpenAI
 from django.conf import settings
 
-from .models import User, UserProfile, Word, Lesson, Level, Message
+from .models import User, UserProfile, Lesson, Level, Message
 
 def instructions(request):
     return render(request, "chatbot/instructions.html")
@@ -46,7 +46,7 @@ def get_current_word(user):
   
 def get_user_context(user):
     '''
-    Returns four context elements:
+    Returns seven context elements:
     lesson_words - What are the words in the current lesson? (to display in the sidebar)
     activity - Is it a practice session (ps), a sentence test (st), a verse test (vt) or a tafseer (t)
     activity_name - What is the name of the activity in human readable format? (eg: "Practice Session")
@@ -164,6 +164,7 @@ def create_bot_response(request):
     else:
         activity_word = get_current_word(user=request.user)
         bot_message = f"Your word is {activity_word} (command: {command})"
+        api_key2 = False
 
         if command=="practice_session":
             prompt = f'Send a simple sentence using "{activity_word}". Do not send anything except the sentence in Arabic'
@@ -174,40 +175,45 @@ def create_bot_response(request):
         elif command == "correct_translation":
             sentence_test = data.get("sentenceTest")
             prompt = f'If the translation of "{sentence_test}" is "{user_message}", send "correct" else send "wrong"'
+            api_key2 = True
 
             # FOR TESTING PURPOSES
-            bot_message = "correct"
+            # bot_message = "correct"
 
         elif command == "translate_word":
             prompt = f"Give the shortest translation of {user_message}. Do not send anything except the translation"
-
+            api_key2 = True
+            
         else:
             prompt = "invalid_command"
 
         print(prompt)
         
         # FOR TESTING PURPOSES
-        prompt = "invalid_command"
+        # prompt = "invalid_command"
 
-        # bot_message = f"Your word is {activity_word} (command: {command})"
         if prompt != "invalid_command":
             try:
-                bot_message = generate_response_gpt3(prompt)
+                bot_message = generate_response_gpt3(prompt, api_key2)
             except Exception as e:
                 print(e)
 
         # TESTING
-        if command == "correct_translation":
-            bot_message = "correct"
+        # if command == "correct_translation":
+        #     bot_message = "correct"
         
         return JsonResponse({
             "bot_message": bot_message,
         }, status=201)
     
-def generate_response_gpt3(user_message):
+def generate_response_gpt3(user_message, use_key2=False):
     api_key = settings.OPENAI_API_KEY
+    api_key_2 = settings.OPENAI_API_KEY_2
     model = "gpt-3.5-turbo"
     client = OpenAI(api_key=api_key)
+    if use_key2:
+        client = OpenAI(api_key=api_key_2)
+    
     
     completion = client.chat.completions.create(
         model=model,
