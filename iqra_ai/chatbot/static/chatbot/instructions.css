@@ -1,7 +1,5 @@
-/* Import Font Dancing Script */
 @import url('https://fonts.googleapis.com/css?family=Dancing+Script');
 
-/* Your existing CSS styles go here */
 .title h1 {
     margin: 20px;
     text-align: center;
@@ -19,7 +17,6 @@
     padding: 10px;
 }
 
-/* Add your styles for the instructions bubble */
 .instructions-bubble {
     background-color: #fff;
     border-radius: 18px;
@@ -50,7 +47,7 @@
 
 .start-lesson-btn {
     display: inline-block;
-    background-color: #05605aff; /* Dark Green */
+    background-color: #05605aff;
     color: #fff;
     padding: 10px 20px;
     text-decoration: none;
