@@ -8,6 +8,11 @@
     text-decoration: none;
 }
 
+.btn-style:hover {
+    background-color:#e0e0e0;
+    color: black;
+}
+
 .landing-page-img {
     max-width: 300px;
     margin-bottom: 40px;
