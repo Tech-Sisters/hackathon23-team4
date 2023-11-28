@@ -27,37 +27,46 @@ function initializeChat() {
     lessonWords = getLessonWords().then(() => begin());
 
     async function begin() {
-        // console.log(lessonWords)
-        console.log("begin ",activity+activity_number);
 
+        // User is on a Practice Session
         if (activity === "ps") {
+
+            // User hasn't yet started Practice Sessions
             if (activity_number === 0) {
                 startButton();
+
+            // User has started Practice Sessions and is on one of them
             } else {
+
+                // Add all previous messages of this practice session to the screen so user can continue where they left off
                 messages_num = messages.length;
                 for (let i=0; i<messages_num; i++) {
                     if (messages[i][1]=="user") {
                         addUserMessage(messages[i][0]);
                     } else if (messages[i][1]=="bot"){
                         addBotMessage(messages[i][0]);
-                    } else {
-                        console.log("Uknown message sender:",messages[i][1])
                     }
                 }
             }
 
+        // User is on a Sentence Test
         } else if (activity === 'st') {
+
+            // User hasn't yet started Sentence Tests
             if (activity_number === 0) {
                 startButton();
+
+            // User has started Sentence Tests and is on one of them
             } else {
                 startSentenceTestWord();
             }
 
+        // User is on a Verse Test
         } else if (activity === 'vt') {
-            console.log("begin vt");
             startButton();
+
+        // User has unlocked the Tafseer
         } else if (activity === 't') {
-            console.log("begin tafseer");
             startButton();
         }
 
@@ -66,70 +75,65 @@ function initializeChat() {
     // Add a new function to handle sentence test words
     async function startSentenceTestWord() {
         const sentenceTestIndex = activity_number-1
+
+        // All 5 sentence tests are not yet done
         if (sentenceTestIndex < 5) {
-            console.log(lessonWords)
+            // Get the word user has to be tested on
             const sentenceTestWord = lessonWords[sentenceTestIndex];
+
+            // Get a sentence test from the bot
             currentTest = await get_bot_response(sentenceTestWord, "sentence_test", currentTest)
             const botMessage = `Translate: "${currentTest}"`; 
+
+            // Add the bot message and save it
             addBotMessage(botMessage);
             await sendMessageToBackend(botMessage);
-            // Add logic to handle user response and check correctness (not implemented in this example)
-            // After handling user response, move on to the next word
-        } else {
-            // Move on to the next phase (e.g., verse test)
-            // You can implement logic or call a function here to handle the next phase
-            console.log('Sentence tests completed. Moving on to the next phase.');
         }
     }
 
+    // Start Verse test
     async function startVerseTest() {
-        const verseTestIndex = activity_number - 1;
-    
-        if (verseTestIndex < 5) {
-            const verseToTranslate = "لَيْلَةُ ٱلْقَدْرِ خَيْرٌۭ مِّنْ أَلْفِ شَهْرٍۢ" //replace with call to verses file
-            currentTest = verseToTranslate
-            const botMessage = `Translate the verse: "${verseToTranslate}"`;
-            addBotMessage(botMessage);
-            await sendMessageToBackend(botMessage);
-
-        } else {
-            // Move on to the next phase (e.g., another activity)
-            console.log('Verse tests completed. Moving on to the next phase.');
-        }
+        const verseToTranslate = "لَيْلَةُ ٱلْقَدْرِ خَيْرٌۭ مِّنْ أَلْفِ شَهْرٍۢ" //replace with call to verses file in v2
+        currentTest = verseToTranslate
+        const botMessage = `Translate the verse: "${verseToTranslate}"`;
+        addBotMessage(botMessage);
+        await sendMessageToBackend(botMessage);
     }
 
+    // Show Tafseer
     async function showTafseer() {
-        console.log("Showing tafseer now")
-        // replace with call to tafseer file
+
+        // replace with call to tafseer file in v2
         const botMessages = [`Showing summarized Tafseer for the following three verses:
         إِنَّآ أَنزَلْنَـٰهُ فِى لَيْلَةِ ٱلْقَدْرِ (1) 
         (Indeed, ˹it is˺ We ˹Who˺ sent this ˹Quran˺ down on the Night of Glory.)
-
         وَمَآ أَدْرَىٰكَ مَا لَيْلَةُ ٱلْقَدْرِ (2) 
         (And what will make you realize what the Night of Glory is?)
-
         لَيْلَةُ ٱلْقَدْرِ خَيْرٌۭ مِّنْ أَلْفِ شَهْرٍۢ (3) 
         (The Night of Glory is better than a thousand months.)`,
 
         `The tafsir discusses Surah Al-Qadr, which emphasizes the significance of the Night of Qadr (Laylat al-Qadr) during the month of Ramadan. The occasion of revelation is explained through the story of a warrior from the Children of Israel who fought persistently for a thousand months, and the Surah was revealed to highlight that the worship on the Night of Qadr in Islam surpasses the value of such continuous jihad.
-
         The term "Qadr" is interpreted with two meanings: greatness and predestination. The Night of Qadr is considered great due to the honor, majesty, and dignity associated with it. Additionally, it is associated with predestination, signifying that the destinies of individuals and nations for the coming year are decided on this night.
-
         The exact date of the Night of Qadr is not disclosed in the Qur'an, but it is stated to occur in the last ten nights of Ramadan, with suggestions that it could be any of the odd-numbered nights. Various authentic traditions support the idea of seeking it in the last ten nights, particularly on the 21st, 23rd, 25th, 27th, and 29th nights.
-
         The Surah itself mentions the extraordinary value of the Night, stating that the worship during this night is better than a thousand months of worship. It is emphasized that the exact number is not the focus, but rather it signifies a significantly high value. The hadiths also highlight the immense rewards associated with spending the Night of Qadr in worship, including the forgiveness of past sins.
-
         The text concludes by mentioning a special supplication recommended by the Prophet Muhammad (ﷺ) for those who find the Night of Qadr: "O Allah! Verily, You are the Oft-Pardoning, You love to pardon, so do pardon me." Additionally, it notes that the Holy Qur'an was revealed on the Night of Qadr, and other heavenly books were also revealed during Ramadan, with specific dates mentioned for each.
         `,
+
         `For detailed tafsir of these verses, visit https://quran.com/97:1/tafsirs/en-tafsir-maarif-ul-quran`];
+
+        // send tafseer and info in 3 different messages
         for (i=0; i<botMessages.length; i++) {
             addBotMessage(botMessages[i]);
             await sendMessageToBackend(botMessages[i]);
         }
+
+        // Button for next level once user is done reading Tafseer
         await startNextLevel();
     }   
 
+    // Start next level
     async function startNextLevel() {
+
         chatInput.style.display = 'none'; // hide the input field
         const startButton = createButtonElement('Start next level');
 
@@ -150,11 +154,11 @@ function initializeChat() {
         startSessionContainer.appendChild(startButton);
     }
 
+    // Common button to start any activity
     function startButton() {
 
         chatInput.style.display = 'none'; // hide the input field
         const startButton = createButtonElement('Start '+activity_name);
-        console.log("Created button for",activity_name);
 
         startSessionContainer.style.display = 'flex'; // show startSessionContainer
         startSessionContainer.innerHTML = ''; // Clear the content of startSessionContainer
@@ -182,7 +186,7 @@ function initializeChat() {
                             lessonWordsString += num_word;
                         }
                         lessonWordsString += lessonWords[lessonWords.length-1];
-                        console.log("Lesson words:",lessonWords)
+
                         addBotMessage(`Welcome to the practice session of Lesson 1! 
                         We are going to practice the following words: ${lessonWordsString}`);
                         addBotMessage(`For each word, you will have to practice with the bot by using the word in a sentence. 
@@ -200,6 +204,7 @@ function initializeChat() {
         startSessionContainer.appendChild(startButton);
     }
 
+    // Create button element
     function createButtonElement(activity_btn_msg) {
         const buttonElement = document.createElement('button');
         buttonElement.classList.add('start-activity-btn');
@@ -208,26 +213,30 @@ function initializeChat() {
         return buttonElement;
     }
 
+    // Add user messages to chat box
     function addUserMessage(message) {
         const userMessage = createMessageElement(message, 'user-message');
         chatMessages.appendChild(userMessage);
         scrollToBottom();
     }
 
+    // Add bot messages to chat box
     function addBotMessage(message) {
         const assistantMessage = createMessageElement(message, 'assistant-message', true);
         chatMessages.appendChild(assistantMessage);
         scrollToBottom();
     }
 
+    // Update activity name in sidebar
     function updateActivityName(p_activity_name) {
         const activity_name_heading = document.getElementById("activity_name");
         activity_name_heading.innerHTML = p_activity_name;
     }
 
+    // Update lesson words in sidebar
     function updateLessonWords(p_lesson_words) {
         const lesson_words_list = document.getElementById("lesson_words_list");
-        console.log(p_lesson_words)
+
         lesson_words_list.innerHTML = '';
         p_lesson_words.forEach(word => {
             const li = document.createElement('li');
@@ -236,6 +245,7 @@ function initializeChat() {
         });
     }
 
+    // Update info in sidebar
     function updateSidebarInfo(lesson, level, p_activity_name, p_lesson_words) {
         const user_level_heading = document.getElementById("user_level");
         const user_lesson_heading = document.getElementById("user_lesson");
@@ -248,6 +258,7 @@ function initializeChat() {
 
     }
 
+    // Create message element to add in chat box
     function createMessageElement(message, className, isAssistant = false) {
         const messageElement = document.createElement('div');
 
@@ -260,6 +271,8 @@ function initializeChat() {
                 const span = document.createElement('span');
                 span.textContent = word + ' ';
                 span.classList.add('clickable-word');
+
+                // Make word clickable so user can see its translation
                 span.addEventListener('click', async event => await createBubble(event, word));
                 wordContainer.appendChild(span);
             });
@@ -269,11 +282,11 @@ function initializeChat() {
         }
         
         messageCounter++;
-        // console.log("Messages so far: ",messageCounter)
 
         return messageElement;
     }
 
+    // Create word translation bubble 
     async function createBubble(event, word) {
         // Remove existing bubbles
         const existingBubbles = document.querySelectorAll('.bubble');
@@ -281,6 +294,8 @@ function initializeChat() {
 
         const bubble = document.createElement('div');
         bubble.classList.add('bubble');
+
+        // Get word translation from backend
         let word_translation = await get_bot_response(word, "translate_word") 
         word_translation = word_translation.replace(".","").toLowerCase()
         bubble.textContent = word_translation;
@@ -312,19 +327,23 @@ function initializeChat() {
 
             let lesson_progress;
 
+            // If user is on a Practice Session
             if (activity==="ps") {
+
+                // User has yet to send messages to finish practice session
                 if (messageCounter < 1) {
                     const botMessage = await get_bot_response(userMessage, "practice_session");
                     await sendMessageToBackend(botMessage, "bot", "ps");
                     addBotMessage(botMessage);
+
+                // User is done with practice session
                 } else {
-                    console.log('10 MESSAGES DONE');
+
+                    // Get the last message of practice session from the bot
                     const botMessage = await get_bot_response(userMessage, "practice_session");
                     await sendMessageToBackend(botMessage, "bot", "ps");
                     addBotMessage(botMessage);
                     
-                    console.log(activity+activity_number,"done")
-                    // update ps activity number through fetch
                     lesson_progress = 'ps' + (activity_number+1);
 
                     if (lesson_progress === 'ps6') {
@@ -340,16 +359,19 @@ function initializeChat() {
 
                     }
 
-                    console.log("new lesson_progress: "+lesson_progress)
                     await sendProgressToBackend(lesson_progress);
 
                     messageCounter = 0;
                 }
+
+            // If user is on a Sentence Test
             } else if (activity === "st" && activity_number >= 1) {
+                // Check correctness of user's translation ("correct"/"wrong")
                 let result = await get_bot_response(userMessage, "correct_translation", currentTest); // Should be "correct" or "wrong"
                 result = result.replace(".","").toLowerCase()
-                // let result = "correct";
+
                 let botMessage;
+
                 if (result === "correct") {
                     botMessage = "That is the right translation!";
 
@@ -388,11 +410,12 @@ function initializeChat() {
                 if (activity=='st') {
                     startSentenceTestWord();
                 }
+
+            // If user is on a Verse Test
             } else if (activity == "vt") {
-                // Check correctness (you need to implement actual correctness check)
+                // Check correctness of user's translation
                 let result = await get_bot_response(userMessage, "correct_translation", currentTest); // Should be "correct" or "wrong"
                 result = result.replace(".","").toLowerCase()
-                // let result = "correct";
                 let botMessage;
                     
                 if (result === "correct") {
@@ -418,7 +441,7 @@ function initializeChat() {
                 }
             }
             
-            // lesson_progress is undefined when user enters something in vt currently
+            // If user completes an activity and goes to the start of another activity, run begin() function
             if (['ps0','st0','vt','t'].includes(lesson_progress)) {
                 begin()
             }
@@ -426,6 +449,7 @@ function initializeChat() {
         }
     }
     
+    // Send message to backend to save it
     async function sendMessageToBackend(message, sender="bot", message_type="normal") {
         const url = "/save_message";
         const method = "POST";
@@ -437,18 +461,18 @@ function initializeChat() {
         try {
             const data = await makeRequest(url, method, body);
 
-            // Check if the registration was successful
+        // Check if the registration was successful
         if (data.registrationSuccess) {
             // Redirect to the instructions page
             window.location.href = "/instructions";
         }
 
-            console.log('POST response:', data);
         } catch (error) {
             console.error('Error:', error);
         }
     }
 
+    // Send progress to backend to save it
     async function sendProgressToBackend(lesson_progress, currentLesson=false, currentLevel=false) {
         currentLesson = currentLesson ? currentLesson : user_lesson;
         currentLevel = currentLevel ? currentLevel : user_level;
@@ -461,15 +485,14 @@ function initializeChat() {
         };
         try {
             const data = await makeRequest(url, method, body);
-            console.log('PUT response:', data, lesson_progress, currentLesson, currentLevel);
             updateLocalProgress(lesson_progress);
         } catch (error) {
             console.error('Error:', error);
         }
     }
 
+    // Get bot's response from backend
     async function get_bot_response(userMessage, command, currentTest="") {
-        // console.log("User message received:", userMessage)
         const url = "/create_bot_response";
         const method = "POST";
         const body = {
@@ -480,13 +503,13 @@ function initializeChat() {
 
         try {
             const data = await makeRequest(url, method, body);
-            console.log('POST response:', data);
             return data.bot_message
         } catch (error) {
             console.error('Error:', error);
         }
     }
 
+    // Make fetch request to backend
     async function makeRequest(url, method, body = null) {
 
         const options = {
@@ -514,6 +537,7 @@ function initializeChat() {
         }
     }
 
+    // Get all words in current lesson
     async function getLessonWords() {
         // Using the Fetch API to send a GET request
         try {
@@ -537,6 +561,7 @@ function initializeChat() {
         }
     }
 
+    // Update progress variables in this file
     function updateLocalProgress(lesson_progress) {
         activity = lesson_progress.slice(0,2);
         activity_obj = {
@@ -554,6 +579,7 @@ function initializeChat() {
         updateActivityName(activity_name);
     }
 
+    // Update level and lesson in the file
     function updateLocalLevelLesson(level, lesson, newLessonWords) {
         user_level = level;
         user_lesson = lesson;
@@ -561,6 +587,7 @@ function initializeChat() {
         updateSidebarInfo(lesson, level, activity_name, newLessonWords)
     }
 
+    // Get the next letter in the alphabet (to update level)
     function getNextLetter(letter) {
         const code = letter.charCodeAt(0);
         let next_level;
@@ -574,15 +601,18 @@ function initializeChat() {
         return next_level;
     }
 
+    // Scroll to the bottom of chatbox
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Make send button clickable
     const sendButton = document.querySelector('#sendButton');
     sendButton.addEventListener('click', async function () {
         await processUserInput();
     });
 
+    // Send message when user clicks enter
     userInput.addEventListener('keyup', async event => {
         if (event.key === 'Enter') {
             await processUserInput();
