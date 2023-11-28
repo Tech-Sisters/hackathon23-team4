@@ -29,12 +29,12 @@
                 <p class="data">{{ user_profile.current_level }}</p>
             </div>
             <div class="info-row">
-                <p class="label">Current Lesson:</p>
+                <p class="label">Lesson:</p>
                 <p class="data">{{ user_profile.current_lesson.number }}</p>
             </div>
         </div>
 
-        <!-- Container 2: My Queue Words -->
+        <!-- Container 2: My Current Lesson Words -->
         <div class="profile-bubble my-words">
             <h3>My Current Lesson Words</h3>
             <ul>
@@ -44,7 +44,7 @@
             </ul>
         </div>
 
-        <!-- Container 3: My Vocab Words -->
+        <!-- Container 3: My Previously Learnt Words -->
         <div class="profile-bubble my-words">
             <h3>My Previously Learnt Words</h3>
             <ul>
@@ -54,11 +54,13 @@
             </ul>
         </div>
 
-        <!-- Container 4: Image -->
+        <!-- Container 4: Level Overview -->
         <div class="profile-bubble lessons-image">
             <h3>Level A Vocabulary</h3>
-            <!-- Add your image here -->
-            <img src="{% static 'Level_A.png' %}" alt="Lesson">
+            <!-- Make the image clickable and link to the chatbot -->
+            <a href="{% url 'index' %}">
+                <img src="{% static 'Level_A.png' %}" alt="Lesson">
+            </a>
         </div>
 
     </div>

@@ -24,9 +24,10 @@
 
         {% block navbar %}
         <div class="navbar navbar-expand-lg" id="main-navbar">
-            <div class="logo" href="{% url 'index' %}">
-                <!-- Add your logo here -->
-                <img src="{% static 'iqra-ai-logo.png' %}" alt="Iqra.ai" class="logo" href="{% url 'index' %}">
+            <div class="logo">
+                <a href="{% url 'index' %}">
+                    <img src="{% static 'iqra-ai-logo.png' %}" alt="Iqra.ai" class="logo">
+                </a>
             </div>
 
         
@@ -35,43 +36,43 @@
                     {% if request.path == '/profile/' %}
                         <!-- Authenticated user on the Profile page -->
                         <a class="btn btn-secondary" href="{% url 'index' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Chatbot">
-                            <i class="fa fa-comment"> Chatbot</i>
+                            <i class="fa fa-comment"></i> Chatbot
                             <span class="visually-hidden">Chatbot</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'instructions' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Instructions">
-                            <i class="fa fa-book"> Instructions</i>
+                            <i class="fa fa-book"></i> Instructions
                             <span class="visually-hidden">Instructions</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'logout' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
-                            <i class="fa fa-sign-out-alt"> Logout</i>
+                            <i class="fa fa-sign-out-alt"></i> Logout
                             <span class="visually-hidden">Logout</span>
                         </a>
                     {% elif request.path == '/instructions' %}
                         <!-- Authenticated user on the Instructions page -->
                         <a class="btn btn-secondary" href="{% url 'index' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Chatbot">
-                            <i class="fa fa-comment"> Chatbot</i>
+                            <i class="fa fa-comment"></i> Chatbot
                             <span class="visually-hidden">Chatbot</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'profile' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Profile">
-                            <i class="fa fa-user"> Profile</i>
+                            <i class="fa fa-user"></i> Profile
                             <span class="visually-hidden">Profile</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'logout' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
-                            <i class="fa fa-sign-out-alt"> Logout</i>
+                            <i class="fa fa-sign-out-alt"></i> Logout
                             <span class="visually-hidden">Logout</span>
                         </a>
                     {% else %}
                         <!-- Other authenticated pages (e.g., Chatbot page) -->
                         <a class="btn btn-secondary" href="{% url 'profile' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Profile">
-                            <i class="fa fa-user"> Profile</i>
+                            <i class="fa fa-user"></i> Profile
                             <span class="visually-hidden">Profile</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'instructions' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Instructions">
-                            <i class="fa fa-book"> Instructions</i>
+                            <i class="fa fa-book"></i> Instructions
                             <span class="visually-hidden">Instructions</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'logout' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
-                            <i class="fa fa-sign-out-alt"> Logout</i>
+                            <i class="fa fa-sign-out-alt"></i> Logout
                             <span class="visually-hidden">Logout</span>
                         </a>
                     {% endif %}
@@ -80,23 +81,23 @@
                     {% if request.path == '/register/' %}
                         <!-- Register page -->
                         <a class="btn btn-primary" href="{% url 'login' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
-                            <i class="fa fa-sign-in-alt"> Login</i>
+                            <i class="fa fa-sign-in-alt"></i> Login
                             <span class="visually-hidden">Login</span>
                         </a>
                     {% elif request.path == '/login/' %}
                         <!-- Login page -->
                         <a class="btn btn-primary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
-                            <i class="fa fa-user-plus"></i>
+                            <i class="fa fa-user-plus"></i> Register
                             <span class="visually-hidden">Register</span>
                         </a>
                     {% else %}
                         <!-- Landing page (default) -->
                         <a class="btn btn-primary" href="{% url 'register' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Register">
-                            <i class="fa fa-user-plus"> Register</i>
+                            <i class="fa fa-user-plus"></i> Register
                             <span class="visually-hidden">Register</span>
                         </a>
                         <a class="btn btn-secondary" href="{% url 'login' %}" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
-                            <i class="fa fa-sign-in-alt"> Login</i>
+                            <i class="fa fa-sign-in-alt"></i> Login
                             <span class="visually-hidden">Login</span>
                         </a>
                     {% endif %}

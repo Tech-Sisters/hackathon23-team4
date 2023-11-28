@@ -1,7 +1,7 @@
 .btn-style {
     background-color: #05605a;
-    color: #05605a;
-    padding: 15px 30px;
+    color: #fff;
+    padding: 15px 30px; /* Adjust padding to increase button size */
     border-radius: 5px;
     font-size: 18px;
     margin-top: 20px;

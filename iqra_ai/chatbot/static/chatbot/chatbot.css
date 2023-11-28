@@ -14,7 +14,7 @@ body {
 }
 
 .sidebar {
-    width: 25%; /* Adjust the width as needed */
+    width: 25%;
     padding: 20px;
     background-color: #f0f0f0;
 }
@@ -121,7 +121,7 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px; /* Adjust the padding as needed */
+    padding: 20px;
 }
 
 .start-activity-btn {
@@ -131,4 +131,8 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+ol li {
+    font-size: 30px;
 }

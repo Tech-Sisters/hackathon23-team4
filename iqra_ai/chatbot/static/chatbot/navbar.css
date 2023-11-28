@@ -18,8 +18,9 @@
     margin-right: 10px; /* Adjust the margin as needed for spacing between buttons */
     margin-top: 7px;
     margin-bottom: 7px;
-    font-size: 14px; /* Adjust the font size to make the buttons slightly bigger */
+    font-size: 20px; /* Adjust the font size to make the buttons slightly bigger */
     padding: 10px 15px; /* Adjust padding for top/bottom and left/right spacing */
+    background-color: #05605aff;
 }
 
 .navbar-buttons a:hover {

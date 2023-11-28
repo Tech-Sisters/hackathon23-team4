@@ -14,6 +14,10 @@ body {
     padding: 20px;
 }
 
+.profile-container {
+    color: #555;
+}
+
 .profile-bubble {
     background-color: #ffffff;
     border-radius: 15px;
@@ -23,23 +27,8 @@ body {
     max-width: 500px;
     width: 100%;
     text-align: center;
-}
-
-/* Style for the User Information container */
-.profile-bubble.user-info {
-    /* No background color for the entire container */
-    padding: 20px; /* Add some padding for better appearance */
-    border-radius: 10px; /* Add rounded corners for a bubble-like appearance */
-    margin-bottom: 20px; /* Add margin to separate it from other containers */
-    display: grid; /* Use grid layout */
-    gap: 10px; /* Add some gap between rows */
-    grid-template-columns: max-content auto; /* Two columns, first is as wide as the content, second takes the remaining space */
-    display: grid; /* Use grid layout */
-    gap: 10px; /* Add some gap between rows */
-    grid-template-columns: max-content auto; /* Two columns, first is as wide as the content, second takes the remaining space */
-    justify-content: center; /* Center the grid horizontally */
-    align-items: center; /* Center the grid vertically */
-    text-align: left; /* Align text to the left within each grid item */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Style for the headings (Email, Level, Current Lesson) */
@@ -52,18 +41,36 @@ body {
     grid-column: span 2; /* Span the entire width of the grid */
 }
 
-/* Style for the labels (Email:, Level:, Current Lesson:) */
-.profile-bubble.user-info .info-row p.label {
-    color: #777; /* Slightly lighter grey color for the labels */
-    grid-column: 1; /* First column */
-    margin: 0; /* Remove default margin */
+.info-row {
+    /* Add spacing between rows */
+    margin-bottom: 10px;
+    position: relative; /* Required for absolute positioning of the line */
+
+    /* Use flexbox to align label and data horizontally */
+    display: flex;
+    align-items: center;
 }
 
-/* Style for the information (actual data) */
-.profile-bubble.user-info .info-row p.data {
-    color: #000; /* Black color for the information */
-    grid-column: 2; /* Second column */
-    margin: 0; /* Remove default margin */
+.label {
+    /* Add styling for labels on the left */
+    min-width: 100px; /* Set a minimum width for labels */
+    color: grey;  /* Set label text color to grey */
+}
+
+.data {
+    /* Add styling for data on the right */
+    margin-left: 10px; /* Add some space between label and data */
+}
+
+/* Add a grey line underneath each row */
+.info-row::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%; /* Span the entire width of the .info-row */
+    height: 1px;
+    background-color: rgb(211, 211, 211);
 }
 
 .profile-bubble.my-words ul {
@@ -83,3 +90,6 @@ body {
     height: auto;
 }
 
+ul ul {
+    font-size: 30px;
+}
